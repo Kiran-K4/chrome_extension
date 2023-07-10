@@ -1,7 +1,4 @@
-import { useState } from "react"
-
 function IndexPopup() {
-  const [data, setData] = useState("")
 
   return (
     <div
@@ -11,10 +8,9 @@ function IndexPopup() {
         padding: 16
       }}>
       <h1>
-        Welcome to your <a href="https://www.plasmo.com">Plasmo</a> Extension!
+        Welcome to focus bear <a href="/tabs/settings-page.html">Settings inline</a>
       </h1>
-      <input onChange={(e) => setData(e.target.value)} value={data} />
-      <footer>Crafted by @PlamoHQ</footer>
+      <button onClick={() => { chrome.tabs.create({ url: "/tabs/settings-page.html" }) }}> Settings page</button>
     </div>
   )
 }
