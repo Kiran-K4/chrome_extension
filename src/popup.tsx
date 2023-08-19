@@ -5,30 +5,18 @@ import { useStorage } from "@plasmohq/storage/hook";
 import "./popup-style.css";
 
 const PomodoroPlayer = () => {
-  // Predefined target time of 30 seconds (0.5 minutes)
+  // Predefined target time of 1min30 seconds (1.5 minutes)
   const pomodoroTarget = () => new Date().getTime() + 1.5 * 60 * 1000;
 
-  // Retrieve or initialize the start time from storage
-  // const [startTime, setStartTime] = useStorage("startTime");
-  const [startTime, setStartTime] = useState(null);
-
-  const [remainingTime, setRemainingTime] = useState({});
-
-  useEffect(() => {
-    // When component first mounts, send a message to get pomodoro_start_time
-    const getStartTimeFromBackground = async () => {
-      const response = await chrome.runtime.sendMessage({
-        action: "get_pomodoro_start_time"
-      });
-      console.log("start response!!: 🤔", response);
-      setStartTime(response.start_time);
-    };
-
-    getStartTimeFromBackground();
-  }, []);
+  // Retrieve the start time from storage
+  const [startTime, setStartTime] = useStorage("startTime");
+  const [remainingTime, setRemainingTime] = useState(calculateRemainingTime);
 
   // re-render on every startTime change
   useEffect(() => {
+    // Calculate the remaining time immediately after the component mounts
+    setRemainingTime(calculateRemainingTime());
+
     const timer = setInterval(() => {
       if (startTime) {
         setRemainingTime(calculateRemainingTime());
@@ -39,15 +27,7 @@ const PomodoroPlayer = () => {
   }, [startTime]);
 
   const saveStartTimeToStorage = async (startTime) => {
-    console.log("startTime:", startTime);
     setStartTime(startTime);
-
-    const response = await chrome.runtime.sendMessage({
-      action: "set_pomodoro_start_time",
-      start_time: startTime
-    });
-    // do something with response here, not outside the function
-    console.log(response);
   };
 
   function calculateRemainingTime() {
