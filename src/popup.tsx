@@ -5,47 +5,68 @@ import { useStorage } from "@plasmohq/storage/hook";
 import "./popup-style.css";
 
 const PomodoroPlayer = () => {
-  // Predefined target time of 1min30 seconds (1.5 minutes)
-  const pomodoroTarget = () => new Date().getTime() + 1.5 * 60 * 1000;
-
+  const pomodoroFocusTarget = () => new Date().getTime() + 0.4 * 60 * 1000;
+  const pomodoroPauseTarget = () => new Date().getTime() + 5 * 60 * 1000; // 5 minutes pause time
   // Retrieve the start time from storage
-  const [startTime, setStartTime] = useStorage("startTime");
-  const [remainingTime, setRemainingTime] = useState(calculateRemainingTime);
 
-  // re-render on every startTime change
+  const [focusStartTime, setFocusStartTime] = useStorage(
+    "pom_focus_start_time"
+  );
+  const [pauseStartTime, setPauseStartTime] = useStorage(
+    "pom_pause_start_time"
+  );
+  const [isPaused, setIsPaused] = useStorage("pom_focus_is_paused");
+
+  const [remainingTime, setRemainingTime] = useState(calculateRemainingTime); // just store it, so we can read it bgscript, or make it influence a stored "isrunning" state
+
+  // re-render on every focusStartTime change
   useEffect(() => {
-    // Calculate the remaining time immediately after the component mounts
     setRemainingTime(calculateRemainingTime());
-
     const timer = setInterval(() => {
-      if (startTime) {
-        setRemainingTime(calculateRemainingTime());
-      }
+      setRemainingTime(calculateRemainingTime());
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [startTime]);
+  }, [focusStartTime, pauseStartTime]);
 
-  const saveStartTimeToStorage = async (startTime) => {
-    setStartTime(startTime);
+  const start = () => {
+    setFocusStartTime(pomodoroFocusTarget());
+    setPauseStartTime(null); // Clear the timer
+    setIsPaused(false);
+    // setIsRunning();
+  };
+  const pause = () => {
+    if (!isPaused) {
+      setPauseStartTime(pomodoroPauseTarget());
+      setFocusStartTime(null);
+      setIsPaused(true);
+    } else {
+      setFocusStartTime(pomodoroFocusTarget());
+      setPauseStartTime(null);
+      setIsPaused(false);
+    }
   };
 
   function calculateRemainingTime() {
     const currentTime = new Date().getTime();
-    const difference = startTime - currentTime;
 
-    const minutes = Math.floor(difference / (1000 * 60));
-    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    const focusDifference = focusStartTime - currentTime;
+    const pauseDifference = pauseStartTime - currentTime;
 
-    console.log(
-      "difference:",
-      difference,
-      "minutes:",
-      minutes,
-      "seconds:",
-      seconds
-    );
-    return { minutes, seconds };
+    if (
+      focusStartTime &&
+      (!pauseStartTime || focusDifference > pauseDifference)
+    ) {
+      const minutes = Math.floor(focusDifference / (1000 * 60));
+      const seconds = Math.floor((focusDifference % (1000 * 60)) / 1000);
+      return { minutes, seconds };
+    } else if (pauseStartTime) {
+      const minutes = Math.floor(pauseDifference / (1000 * 60));
+      const seconds = Math.floor((pauseDifference % (1000 * 60)) / 1000);
+      return { minutes, seconds };
+    }
+
+    return { minutes: 0, seconds: 0 };
   }
 
   function formatRemainingTime(remainingTime) {
@@ -68,6 +89,7 @@ const PomodoroPlayer = () => {
     }
 
     if (timeText) {
+      isPaused && (timeText += " of pause");
       timeText += " remaining";
     } else {
       timeText = "Break time!";
@@ -79,9 +101,13 @@ const PomodoroPlayer = () => {
   return (
     <div>
       <span>{formatRemainingTime(remainingTime)}</span>
-      <button onClick={() => saveStartTimeToStorage(pomodoroTarget())}>
-        Start
-      </button>
+      <br></br>
+      <button onClick={() => start()}>Start</button>
+      {(focusStartTime || isPaused) && (
+        <button onClick={pause}>
+          {isPaused ? "Resume Focus" : "Pause for 5min"}
+        </button>
+      )}
     </div>
   );
 };
