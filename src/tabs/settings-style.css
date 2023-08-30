@@ -6,3 +6,78 @@ body {
   color: white;
   background-color: #24292e;
 }
+
+.input_bar {
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ensures that the input and the button are spread apart */
+}
+
+input[type="text"] {
+  box-sizing: border-box;
+  height: inherit;
+  padding: 8px;
+  /* margin: 10px 5px 0 0; */
+  /* margin-right: 50px; */
+  /* margin: 5px; */
+  background-color: hsl(210, 12%, 26%);
+  /* font-weight: 600; */
+  color: #fff0be;
+  border: 0;
+  box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  max-width: 360px;
+  width: 240px;
+}
+
+button {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 35px; /* Adjusted */
+  /* background-color: red; Just for debugging */
+}
+
+button:active {
+  background-color: red;
+}
+
+button:hover {
+  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg)
+    brightness(119%) contrast(119%);
+}
+
+.blocked_list_flexcol {
+  display: flex;
+  flex-direction: column;
+  padding-top: 14px;
+  padding-left: 4px;
+}
+
+.blocked-list-entry {
+  display: flex;
+  padding-top: 5px;
+  justify-content: space-between; /* Distribute content to both ends */
+  align-items: center; /* Center align items vertically */
+  /* width: 400px; */
+  border-bottom: solid rgba(0, 195, 255, 0.277) 2px;
+  border-radius: 10%;
+}
+
+.blocked-list-entry span {
+  flex: 1; /* Ensure the text takes up as much space as possible */
+  padding-right: 10px;
+}
+.blocked-list-entry-text {
+  color: rgba(166, 195, 208, 0.833);
+
+  max-width: 350px; /* Adjust as needed */
+  overflow: hidden;
+  text-overflow: ellipsis; /* To handle very long names */
+  white-space: nowrap;
+}
