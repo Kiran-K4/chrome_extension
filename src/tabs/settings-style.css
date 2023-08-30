@@ -11,24 +11,51 @@ body {
   height: 35px;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* ensures that the input and the button are spread apart */
+  justify-content: flex-end; /* ensures that the input and the button are spread apart */
+}
+
+.input-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 input[type="text"] {
   box-sizing: border-box;
   height: inherit;
-  padding: 8px;
-  /* margin: 10px 5px 0 0; */
-  /* margin-right: 50px; */
-  /* margin: 5px; */
+  padding-top: 8px;
+  padding-left: 10px;
+  padding-bottom: 8px;
+  padding-right: 30px;
+  width: 100%; /* Make it take the full width of the wrapper */
   background-color: hsl(210, 12%, 26%);
   /* font-weight: 600; */
-  color: #fff0be;
+  color: rgb(255, 248, 194);
   border: 0;
   box-shadow: 0 0 15px 4px rgba(0, 0, 0, 0.06);
   border-radius: 10px;
   max-width: 360px;
   width: 240px;
+  transition: width 0.3s ease-in-out;
+}
+
+input[type="text"]:focus {
+  /* background-color: red; */
+  /* border: 3px solid yellow; */
+  outline: 3px solid rgba(0, 195, 255, 0.277);
+}
+
+input[type="text"]:focus ~ .input-hint {
+  color: white;
+}
+
+.input_bar .input-hint {
+  color: #ffffff39;
+  position: absolute;
+  right: 25px;
+  top: 50%;
+  transform: translateY(-50%); /* Ensure vertical centering */
+  pointer-events: none; /* Make sure SVG doesn't interfere with the input's functionality */
 }
 
 button {
@@ -40,16 +67,33 @@ button {
   align-items: center;
   justify-content: center;
   height: 35px; /* Adjusted */
-  /* background-color: red; Just for debugging */
+  transition: all 0.5s ease;
 }
 
-button:active {
-  background-color: red;
+.add-btn {
+  margin-left: 4px;
+  height: 30px;
+  background-color: darkgray;
+  border-radius: 8px;
+  background-color: hsl(210, 12%, 26%);
 }
 
-button:hover {
-  filter: invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg)
-    brightness(119%) contrast(119%);
+.add-btn:hover {
+  background-color: hsl(209, 41%, 34%);
+}
+
+.add-btn-text {
+  margin-right: 4px;
+}
+
+.del-btn:hover svg {
+  /* background-color: blue; */
+  color: rgb(0, 175, 245);
+}
+
+.del-btn:active svg {
+  /* background-color: blue; */
+  color: rgb(155, 226, 255);
 }
 
 .blocked_list_flexcol {
@@ -64,7 +108,6 @@ button:hover {
   padding-top: 5px;
   justify-content: space-between; /* Distribute content to both ends */
   align-items: center; /* Center align items vertically */
-  /* width: 400px; */
   border-bottom: solid rgba(0, 195, 255, 0.277) 2px;
   border-radius: 10%;
 }
