@@ -4,8 +4,9 @@ import { Storage } from "@plasmohq/storage";
 
 import "./settings-style.css";
 
+import TimePicker from "~components/time-picker";
+
 const BlockList = () => {
-  console.log("boom");
   const storage = new Storage(); // ref
   const [blockedPages, setBlockedPages] = useState([]);
   const [newPage, setNewPage] = useState("");
@@ -37,7 +38,7 @@ const BlockList = () => {
 
   return (
     <div>
-      <h2>Blocked List</h2>
+      <h2>Blocked list</h2>
       <div className="input_bar">
         <div className="input-wrapper">
           <input
@@ -85,6 +86,9 @@ const BlockList = () => {
           </div>
         ))}
       </div>
+
+      <h2>Working hours</h2>
+      <TimePicker />
     </div>
   );
 };

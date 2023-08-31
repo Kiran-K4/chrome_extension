@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useStorage } from "@plasmohq/storage/hook";
 
+import "./font.css";
 import "./popup-style.css";
 
 const PomodoroPlayer = () => {

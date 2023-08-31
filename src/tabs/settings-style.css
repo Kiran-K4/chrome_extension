@@ -1,5 +1,6 @@
 html {
   width: 400px;
+  font-family: "Inter";
 }
 
 body {
@@ -49,6 +50,36 @@ input[type="text"]:focus ~ .input-hint {
   color: white;
 }
 
+.TimePicker {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+input[type="time"] {
+  box-sizing: border-box;
+  padding: 8px;
+  font-size: 16px;
+  margin: 0 6px 0px 6px;
+  background-color: hsl(210, 12%, 26%);
+  color: rgba(255, 255, 255, 0.825);
+  /* color: rgba(0, 195, 255, 0.7); */
+  border: 0;
+  border-radius: 15px;
+  content: none;
+  color-scheme: dark;
+}
+
+input[type="time"]:hover {
+  border: 0;
+  outline: 3px solid rgba(0, 195, 255, 0.277);
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  background-color: rgba(0, 195, 255, 0.277);
+  border-radius: 50%;
+  padding: 8px;
+}
+
 .input_bar .input-hint {
   color: #ffffff39;
   position: absolute;
@@ -67,7 +98,7 @@ button {
   align-items: center;
   justify-content: center;
   height: 35px; /* Adjusted */
-  transition: all 0.5s ease;
+  transition: all 0.2s ease;
 }
 
 .add-btn {
