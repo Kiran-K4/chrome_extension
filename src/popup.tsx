@@ -4,6 +4,18 @@ import { useStorage } from "@plasmohq/storage/hook";
 
 import "./font.css";
 import "./popup-style.css";
+import "@radix-ui/themes/styles.css";
+
+import {
+  PauseIcon,
+  PlayIcon,
+  ResetIcon,
+  ResumeIcon
+} from "@radix-ui/react-icons";
+import { Box, Button, Flex, IconButton, Text, Theme } from "@radix-ui/themes";
+import { Tabs } from "@radix-ui/themes";
+
+import SettingsPage from "~tabs/settings-page";
 
 const PomodoroPlayer = () => {
   const pomodoroFocusTarget = () => new Date().getTime() + 0.4 * 60 * 1000;
@@ -32,20 +44,25 @@ const PomodoroPlayer = () => {
 
   const start = () => {
     setFocusStartTime(pomodoroFocusTarget());
-    setPauseStartTime(null); // Clear the timer
+    setPauseStartTime(null);
     setIsPaused(false);
-    // setIsRunning();
   };
+
   const pause = () => {
-    if (!isPaused) {
-      setPauseStartTime(pomodoroPauseTarget());
-      setFocusStartTime(null);
-      setIsPaused(true);
-    } else {
-      setFocusStartTime(pomodoroFocusTarget());
-      setPauseStartTime(null);
-      setIsPaused(false);
-    }
+    setPauseStartTime(pomodoroPauseTarget());
+    setIsPaused(true);
+  };
+
+  const resume = () => {
+    setFocusStartTime(pomodoroFocusTarget());
+    setPauseStartTime(null);
+    setIsPaused(false);
+  };
+
+  const reset = () => {
+    setFocusStartTime(null);
+    setPauseStartTime(null);
+    setIsPaused(false);
   };
 
   function calculateRemainingTime() {
@@ -102,41 +119,64 @@ const PomodoroPlayer = () => {
   return (
     <div>
       <span>{formatRemainingTime(remainingTime)}</span>
-      <br></br>
-      <button onClick={() => start()}>Start</button>
-      {(focusStartTime || isPaused) && (
-        <button onClick={pause}>
-          {isPaused ? "Resume Focus" : "Pause for 5min"}
-        </button>
-      )}
+      <br />
+      <IconButton onClick={start} disabled={focusStartTime || pauseStartTime}>
+        <PlayIcon width="16" height="16" />
+      </IconButton>
+      <IconButton onClick={pause} disabled={isPaused || !focusStartTime}>
+        <PauseIcon width="16" height="16" />
+      </IconButton>
+      <IconButton onClick={resume} disabled={!isPaused}>
+        <ResumeIcon width="16" height="16" />
+      </IconButton>
+      <IconButton onClick={reset} disabled={!focusStartTime && !pauseStartTime}>
+        <ResetIcon width="16" height="16" />
+      </IconButton>
     </div>
   );
 };
 
 function IndexPopup() {
+  useEffect(() => {
+    document.documentElement.setAttribute("class", "radix-themes dark"); // if something isn't getting styled, try moving it out
+    // WA: Radix doesn't apply "dark" to root elem. Why?
+  }, []);
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        padding: 16
-      }}>
-      <h1>
-        Welcome to focus bear{" "}
-        <a href="/tabs/settings-page.html">Settings inline</a>
-      </h1>
-      <button
-        onClick={() => {
-          chrome.tabs.create({ url: "/tabs/settings-page.html" });
-        }}>
-        {" "}
-        Settings page
-      </button>
-      <div className="pomodoro_player">
-        <h2>Pomodoro</h2>
-        <PomodoroPlayer />
-      </div>
-    </div>
+    <Theme
+      className="dark"
+      accentColor="yellow"
+      appearance="dark"
+      panelBackground="solid"
+      scaling="100%"
+      radius="large">
+      <Flex direction="column" gap="4">
+        <Tabs.Root defaultValue="home">
+          <Tabs.List size="2">
+            <Tabs.Trigger value="home">Home</Tabs.Trigger>
+            <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
+            <Tabs.Trigger value="account">Account</Tabs.Trigger>
+          </Tabs.List>
+
+          <Box px="4" pt="3" pb="2">
+            <Tabs.Content value="account">
+              <Text size="2">Welcome to focus bear.</Text>
+            </Tabs.Content>
+
+            <Tabs.Content value="home">
+              <Text size="2">This will be the main control area.</Text>
+              <div className="pomodoro_player">
+                <h2>Pomodoro</h2>
+                <PomodoroPlayer />
+              </div>
+            </Tabs.Content>
+
+            <Tabs.Content value="settings">
+              <SettingsPage />
+            </Tabs.Content>
+          </Box>
+        </Tabs.Root>
+      </Flex>
+    </Theme>
   );
 }
 
