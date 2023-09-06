@@ -30,13 +30,20 @@ const PomodoroPlayer = () => {
   );
   const [isPaused, setIsPaused] = useStorage("pom_focus_is_paused");
 
-  const [remainingTime, setRemainingTime] = useState(calculateRemainingTime); // just store it, so we can read it bgscript, or make it influence a stored "isrunning" state
+  const [remainingTime, setRemainingTime] = useState(
+    calculateRemainingTime(focusStartTime)
+  ); // just store it, so we can read it bgscript, or make it influence a stored "isrunning" state
+  const focusRemaining = calculateRemainingTime(focusStartTime);
+  const pauseRemaining = calculateRemainingTime(pauseStartTime);
 
+  const isIdle = !focusStartTime && !pauseStartTime;
+  const isRunning = focusStartTime && !isPaused;
+  const isOnBreak = pauseStartTime && isPaused;
   // re-render on every focusStartTime change
   useEffect(() => {
-    setRemainingTime(calculateRemainingTime());
+    setRemainingTime(calculateRemainingTime(focusStartTime));
     const timer = setInterval(() => {
-      setRemainingTime(calculateRemainingTime());
+      setRemainingTime(calculateRemainingTime(focusStartTime));
     }, 1000);
 
     return () => clearInterval(timer);
@@ -65,26 +72,12 @@ const PomodoroPlayer = () => {
     setIsPaused(false);
   };
 
-  function calculateRemainingTime() {
-    const currentTime = new Date().getTime();
-
-    const focusDifference = focusStartTime - currentTime;
-    const pauseDifference = pauseStartTime - currentTime;
-
-    if (
-      focusStartTime &&
-      (!pauseStartTime || focusDifference > pauseDifference)
-    ) {
-      const minutes = Math.floor(focusDifference / (1000 * 60));
-      const seconds = Math.floor((focusDifference % (1000 * 60)) / 1000);
-      return { minutes, seconds };
-    } else if (pauseStartTime) {
-      const minutes = Math.floor(pauseDifference / (1000 * 60));
-      const seconds = Math.floor((pauseDifference % (1000 * 60)) / 1000);
-      return { minutes, seconds };
-    }
-
-    return { minutes: 0, seconds: 0 };
+  function calculateRemainingTime(endTime) {
+    if (!endTime) return { minutes: 0, seconds: 0 };
+    const difference = endTime - new Date().getTime();
+    const minutes = Math.floor(difference / (1000 * 60));
+    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    return { minutes, seconds };
   }
 
   function formatRemainingTime(remainingTime) {
@@ -118,18 +111,20 @@ const PomodoroPlayer = () => {
 
   return (
     <div>
-      <span>{formatRemainingTime(remainingTime)}</span>
+      <span>
+        {formatRemainingTime(isOnBreak ? pauseRemaining : focusRemaining)}
+      </span>
       <br />
-      <IconButton onClick={start} disabled={focusStartTime || pauseStartTime}>
+      <IconButton onClick={start} disabled={!isIdle}>
         <PlayIcon width="16" height="16" />
       </IconButton>
-      <IconButton onClick={pause} disabled={isPaused || !focusStartTime}>
+      <IconButton onClick={pause} disabled={!isRunning}>
         <PauseIcon width="16" height="16" />
       </IconButton>
-      <IconButton onClick={resume} disabled={!isPaused}>
+      <IconButton onClick={resume} disabled={!isOnBreak}>
         <ResumeIcon width="16" height="16" />
       </IconButton>
-      <IconButton onClick={reset} disabled={!focusStartTime && !pauseStartTime}>
+      <IconButton onClick={reset} disabled={isIdle}>
         <ResetIcon width="16" height="16" />
       </IconButton>
     </div>
