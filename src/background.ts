@@ -1,10 +1,12 @@
 import { Storage } from "@plasmohq/storage";
 
+import { ListType } from "~types";
+
 (async () => {
   const storage = new Storage();
 
   const getBlockedList = async () => {
-    const blocked_list_data: string = await storage.get("blocked");
+    const blocked_list_data: string = await storage.get(ListType.BLOCKED_LIST);
     const blocked_list: Array<string> = blocked_list_data
       ? JSON.parse(blocked_list_data)
       : [];
@@ -12,21 +14,26 @@ import { Storage } from "@plasmohq/storage";
     return blocked_list;
   };
 
-  // update;
+  const getRelaxList = async () => {
+    const relax_list_data: string = await storage.get(ListType.RELAX_LIST);
+    const relax_list: Array<string> = relax_list_data
+      ? JSON.parse(relax_list_data)
+      : [];
+    console.debug("relax_list:", relax_list);
+    return relax_list;
+  };
 
   let blocked_list: Array<string> = await getBlockedList();
+  let relax_list: Array<string> = await getRelaxList();
 
-  // const is_pomodoro_running: boolean = undefined;
   storage.watch({
-    blocked: async (c) => {
+    blocked_list: async (c) => {
       blocked_list = await getBlockedList();
+    },
+    relax_list: async (c) => {
+      relax_list = await getRelaxList();
     }
-    // pom_start_time: async (c) => {
-    //   updatePomodoroState(c.newValue);
-    // }
   });
-
-  // chrome.runtime.onMessage.addListener(());
 
   chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (changeInfo.url) {

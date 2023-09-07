@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { Storage } from "@plasmohq/storage";
 
+import { ListType } from "~types";
+
 import "./settings-style.css";
 
 import {
@@ -32,7 +34,7 @@ const BlockList = () => {
   useEffect(() => {
     document.documentElement.setAttribute("class", "dark"); // if something isn't getting styled, try moving it out
     const loadPages = async () => {
-      const blockedPagesData = await storage.get("blocked");
+      const blockedPagesData = await storage.get("blocked_list");
       console.log("obj:", blockedPagesData);
       console.log("objParsed:", JSON.parse(blockedPagesData));
       setBlockedPages(JSON.parse(blockedPagesData));
@@ -44,7 +46,10 @@ const BlockList = () => {
   const handleAddPage = async () => {
     const updatedBlockedPages = [...blockedPages, newPage];
     setBlockedPages(updatedBlockedPages);
-    await storage.set("blocked", JSON.stringify(updatedBlockedPages));
+    await storage.set(
+      ListType.BLOCKED_LIST,
+      JSON.stringify(updatedBlockedPages)
+    );
     setNewPage("");
   };
 
@@ -52,7 +57,10 @@ const BlockList = () => {
     const updatedBlockedPages = [...blockedPages];
     updatedBlockedPages.splice(index, 1);
     setBlockedPages(updatedBlockedPages);
-    await storage.set("blocked", JSON.stringify(updatedBlockedPages));
+    await storage.set(
+      ListType.BLOCKED_LIST,
+      JSON.stringify(updatedBlockedPages)
+    );
   };
 
   return (

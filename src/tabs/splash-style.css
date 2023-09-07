@@ -3,11 +3,11 @@ body {
   background-color: #24292e;
 }
 
-p {
+/* p {
   font-size: 20px;
   max-width: 50%;
   text-align: center;
-}
+} */
 
 @keyframes colors-and-rot {
   from {
@@ -37,7 +37,13 @@ p {
   background-color: #e9912cd1;
 }
 
-h1 {
+.addBtn {
+  animation: text-color-change 5s ease-in-out infinite alternate;
+  text-decoration: underline 0.25em;
+  cursor: pointer;
+}
+
+.sign {
   color: #24292e;
   font-size: 90px;
   transform: rotate(-4deg);
@@ -48,9 +54,4 @@ h1 {
   margin-bottom: 50px;
   width: 50%;
   filter: invert(14%) brightness(139%) contrast(128%);
-}
-
-a {
-  text-decoration: underline 0.25em;
-  animation: text-color-change 5s ease-in-out infinite alternate;
 }

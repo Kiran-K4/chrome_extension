@@ -12,8 +12,15 @@ import {
   ResetIcon,
   ResumeIcon
 } from "@radix-ui/react-icons";
-import { Box, Button, Flex, IconButton, Text, Theme } from "@radix-ui/themes";
-import { Tabs } from "@radix-ui/themes";
+import {
+  Box,
+  Button,
+  Flex,
+  IconButton,
+  Tabs,
+  Text,
+  Theme
+} from "@radix-ui/themes";
 
 import SettingsPage from "~tabs/settings-page";
 
