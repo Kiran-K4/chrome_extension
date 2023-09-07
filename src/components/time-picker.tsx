@@ -1,3 +1,5 @@
+import { Flex, Text } from "@radix-ui/themes";
+
 import { useStorage } from "@plasmohq/storage/hook";
 
 // import "./time-picker-style.css";
@@ -15,7 +17,7 @@ function TimePicker() {
   };
 
   return (
-    <div className="TimePicker">
+    <Flex direction="row" gap="3" align="center" className="TimePicker">
       <input
         type="time"
         name="time_picker_start"
@@ -24,7 +26,7 @@ function TimePicker() {
         onChange={handleStartTimeChange}
         value={workTimeStart || ""}
       />
-      to
+      <Text>to</Text>
       <input
         type="time"
         name="time_picker_end"
@@ -33,7 +35,7 @@ function TimePicker() {
         onChange={handleEndTimeChange}
         value={workTimeEnd || ""}
       />
-    </div>
+    </Flex>
   );
 }
 

@@ -111,17 +111,26 @@ const PomodoroPlayer = () => {
 
   return (
     <div>
-      <span>
+      <Text>
         {formatRemainingTime(isOnBreak ? pauseRemaining : focusRemaining)}
-      </span>
+      </Text>
       <br />
-      <IconButton onClick={start} disabled={!isIdle}>
+      <IconButton
+        style={{ marginRight: "2px" }}
+        onClick={start}
+        disabled={!isIdle}>
         <PlayIcon width="16" height="16" />
       </IconButton>
-      <IconButton onClick={pause} disabled={!isRunning}>
+      <IconButton
+        style={{ marginRight: "2px" }}
+        onClick={pause}
+        disabled={!isRunning}>
         <PauseIcon width="16" height="16" />
       </IconButton>
-      <IconButton onClick={resume} disabled={!isOnBreak}>
+      <IconButton
+        style={{ marginRight: "2px" }}
+        onClick={resume}
+        disabled={!isOnBreak}>
         <ResumeIcon width="16" height="16" />
       </IconButton>
       <IconButton onClick={reset} disabled={isIdle}>
@@ -133,8 +142,21 @@ const PomodoroPlayer = () => {
 
 function IndexPopup() {
   useEffect(() => {
-    document.documentElement.setAttribute("class", "radix-themes dark"); // if something isn't getting styled, try moving it out
     // WA: Radix doesn't apply "dark" to root elem. Why?
+    document.documentElement.setAttribute("class", "radix-themes dark"); // if something isn't getting styled, try moving it out
+
+    window.addEventListener("keydown", function (e) {
+      console.log("keydown!");
+      if (e.ctrlKey && e.key === "Slash") {
+        // if (document.getElementById("search") !== document.activeElement) {
+        e.preventDefault();
+        console.log("Search is not in focus");
+        // document.getElementById("search").focus();
+        // } else {
+        // console.log("Default action of CtrlF");
+        // return true;
+      }
+    });
   }, []);
   return (
     <Theme
