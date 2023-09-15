@@ -2,8 +2,17 @@ import { Storage } from "@plasmohq/storage";
 
 import { ListType } from "~types";
 
+let lastBlockedURL = "";
+
 (async () => {
   const storage = new Storage();
+
+  // Listen for messages from splash-page
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action == "getLastBlockedURL") {
+      sendResponse({ url: lastBlockedURL });
+    }
+  });
 
   const getBlockedList = async () => {
     const blocked_list_data: string = await storage.get(ListType.BLOCKED_LIST);
@@ -53,15 +62,13 @@ import { ListType } from "~types";
         tab.url &&
         blocked_list.length > 0 &&
         blocked_list.some((blockedUrl) => tab.url.includes(blockedUrl));
-      console.log("ruined? up is_pomodoro_running: ", is_pomodoro_running());
-      is_blocked &&
-        !pom_is_focus_paused &&
-        is_pomodoro_running() &&
+      console.log("is_pomodoro_running: ", is_pomodoro_running());
+      if (is_blocked && !pom_is_focus_paused && is_pomodoro_running()) {
+        lastBlockedURL = tab.url;
         chrome.tabs.update(tabId, { url: "/tabs/splash-page.html" });
+      }
     }
   });
 })();
-
-console.log("HELLO WORLD FROM BGSCRIPTS");
 
 export {};
