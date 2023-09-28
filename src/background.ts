@@ -59,18 +59,49 @@ let lastBlockedURL = "";
 
   chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (changeInfo.url) {
-      const pom_start_time: number = JSON.parse(
-        await storage.get("pom_focus_start_time")
-      );
-      const pom_is_focus_paused: boolean = JSON.parse(
-        await storage.get("pom_focus_is_paused")
-      );
+      // Parallelize fetching from storage
+      const [
+        pom_start_time_str,
+        pom_is_focus_paused_str,
+        work_time_start_str,
+        work_time_end_str
+      ] = await Promise.all([
+        storage.get("pom_focus_start_time"),
+        storage.get("pom_focus_is_paused"),
+        storage.get("work_time_start"),
+        storage.get("work_time_end")
+      ]);
+      console.log("Data to parse:", work_time_end_str);
+      const pom_start_time: number = pom_start_time_str
+        ? JSON.parse(pom_start_time_str)
+        : -1;
+      const pom_is_focus_paused: boolean = pom_is_focus_paused_str
+        ? JSON.parse(pom_is_focus_paused_str)
+        : false;
+      const work_time_start: number = work_time_start_str
+        ? JSON.parse(work_time_start_str)
+        : -1;
+
+      const work_time_end: number = work_time_end_str
+        ? JSON.parse(work_time_end_str)
+        : -1;
+
       // todo: pararellize the awaits with promise.all or something
       const is_pomodoro_running = (): boolean => {
         const currentTime: number = new Date().getTime();
         const difference: number = pom_start_time - currentTime;
         return difference > 0;
       };
+      const is_work_time = (): boolean => {
+        const currentTime: number = new Date().getTime();
+        return (
+          work_time_start &&
+          work_time_end &&
+          currentTime >= work_time_start &&
+          currentTime <= work_time_end
+        );
+      };
+
       const is_blocked: boolean =
         tab.url &&
         blocked_list.length > 0 &&
@@ -80,9 +111,11 @@ let lastBlockedURL = "";
       );
       tab.url && console.log("is_pomodoro_running: ", is_pomodoro_running());
       if (
-        is_blocked &&
-        !pom_is_focus_paused &&
-        is_pomodoro_running() &&
+        ((is_work_time() && is_blocked) ||
+          (!is_work_time() &&
+            is_blocked &&
+            is_pomodoro_running() &&
+            !pom_is_focus_paused)) &&
         !is_relax_page
       ) {
         lastBlockedURL = tab.url;

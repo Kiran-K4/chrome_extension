@@ -9,11 +9,30 @@ function TimePicker() {
   const [workTimeStart, setWorkTimeStart] = useStorage("work_time_start");
   const [workTimeEnd, setWorkTimeEnd] = useStorage("work_time_end");
 
+  function timeStringToUnixTimestamp(timeString) {
+    const [hour, minute] = timeString.split(":").map(Number);
+
+    const currentDate = new Date();
+    currentDate.setHours(hour, minute, 0, 0); // Set hours, minutes, reset seconds and milliseconds
+
+    return currentDate.getTime(); // This returns the timestamp in milliseconds
+  }
+
+  function unixTimestampToTimeString(timestamp) {
+    const date = new Date(timestamp);
+
+    // Extract hour and minute, then pad them to ensure they are 2 digits
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${hours}:${minutes}`;
+  }
+
   const handleStartTimeChange = (event) => {
-    setWorkTimeStart(event.target.value);
+    setWorkTimeStart(timeStringToUnixTimestamp(event.target.value));
   };
   const handleEndTimeChange = (event) => {
-    setWorkTimeEnd(event.target.value);
+    setWorkTimeEnd(timeStringToUnixTimestamp(event.target.value));
   };
 
   return (
@@ -24,7 +43,7 @@ function TimePicker() {
         id="time_ps"
         step="600"
         onChange={handleStartTimeChange}
-        value={workTimeStart || ""}
+        value={unixTimestampToTimeString(workTimeStart) || ""}
       />
       <Text>to</Text>
       <input
@@ -33,7 +52,7 @@ function TimePicker() {
         id="time_pe"
         step="600"
         onChange={handleEndTimeChange}
-        value={workTimeEnd || ""}
+        value={unixTimestampToTimeString(workTimeEnd) || ""}
       />
     </Flex>
   );

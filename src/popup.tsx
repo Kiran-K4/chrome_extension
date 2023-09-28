@@ -25,7 +25,7 @@ import {
 import SettingsPage from "~tabs/settings-page";
 
 const PomodoroPlayer = () => {
-  const pomodoroFocusTarget = () => new Date().getTime() + 0.4 * 60 * 1000;
+  const pomodoroFocusTarget = () => new Date().getTime() + 20 * 60 * 1000;
   const pomodoroPauseTarget = () => new Date().getTime() + 5 * 60 * 1000; // 5 minutes pause time
   // Retrieve the start time from storage
 
