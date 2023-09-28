@@ -13,15 +13,17 @@ import {
   TextArea,
   Theme
 } from "@radix-ui/themes";
-import { get } from "http";
 import { useEffect, useState } from "react";
 
 import { useStorage } from "@plasmohq/storage/hook";
+
+import type { RelaxListEntry } from "~types";
 
 document.documentElement.setAttribute("class", "radix-themes dark");
 function SplashPage() {
   const [relaxList, setRelaxList] = useStorage("relax_list");
   const [blockedURL, setBlockedURL] = useState<string>("");
+  const [relaxReason, setRelaxReason] = useState<string>("");
   // Extract domain name from a URL
   const getURL = () => {
     chrome.runtime.sendMessage({ action: "getLastBlockedURL" }, (response) => {
@@ -35,9 +37,9 @@ function SplashPage() {
   }, []);
 
   function addToRelaxed() {
-    let currentList = [];
+    let currentList: RelaxListEntry[] = [];
 
-    // Try to parse relaxList from JSON string to array
+    // Try to parse relaxList from JSON string to array of RelaxListEntry
     try {
       if (relaxList) {
         currentList = JSON.parse(relaxList);
@@ -52,13 +54,26 @@ function SplashPage() {
     }
 
     // Check if the previous site is already in the list
-    if (blockedURL && !currentList.includes(blockedURL)) {
-      // Add the previous site to the list
-      const updatedList = [...currentList, blockedURL];
+    const urlAlreadyExists = currentList.some(
+      (entry) => entry.URL === blockedURL
+    );
+
+    if (blockedURL && !urlAlreadyExists) {
+      // Create a new RelaxListEntry object
+      const newEntry: RelaxListEntry = {
+        URL: blockedURL,
+        reason: relaxReason,
+        duration: 0
+      };
+
+      // Add the new entry to the list
+      const updatedList = [...currentList, newEntry];
+
       // Convert back to JSON string and save
       setRelaxList(JSON.stringify(updatedList));
     }
-    console.log("relaxed_list:", relaxList);
+
+    console.log("relax_list:", relaxList);
   }
 
   return (
@@ -76,15 +91,10 @@ function SplashPage() {
           <h1 className="sign">Not yet...✋</h1>
         </div>
         <Text size="4">
-          Try focusing on your work, that way you will be finished earlier!🐻 If
-          you wish to unblock this page, remove it from the{" "}
-          <a className="addBtn" href="/tabs/settings-page.html">
-            blocked list
-          </a>
-          .
+          Try focusing on your work, that way you will be finished earlier!🐻
         </Text>
-        <Text size="2">
-          It would appear that you've blocked this site. Would you like to
+        <Text>
+          Would you like to
           <AlertDialog.Root>
             <AlertDialog.Trigger>
               <Text
@@ -101,6 +111,7 @@ function SplashPage() {
                 spend too much time on it.
               </AlertDialog.Description>
               <TextArea
+                onChange={(e) => setRelaxReason(e.target.value)}
                 my="2"
                 size="2"
                 placeholder="I would like to..."

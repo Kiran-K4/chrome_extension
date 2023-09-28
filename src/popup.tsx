@@ -151,19 +151,6 @@ function IndexPopup() {
   useEffect(() => {
     // WA: Radix doesn't apply "dark" to root elem. Why?
     document.documentElement.setAttribute("class", "radix-themes dark"); // if something isn't getting styled, try moving it out
-
-    window.addEventListener("keydown", function (e) {
-      console.log("keydown!");
-      if (e.ctrlKey && e.key === "Slash") {
-        // if (document.getElementById("search") !== document.activeElement) {
-        e.preventDefault();
-        console.log("Search is not in focus");
-        // document.getElementById("search").focus();
-        // } else {
-        // console.log("Default action of CtrlF");
-        // return true;
-      }
-    });
   }, []);
   return (
     <Theme

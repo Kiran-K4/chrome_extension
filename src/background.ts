@@ -1,6 +1,6 @@
 import { Storage } from "@plasmohq/storage";
 
-import { ListType } from "~types";
+import { ListType, type RelaxListEntry } from "~types";
 
 let lastBlockedURL = "";
 
@@ -23,17 +23,30 @@ let lastBlockedURL = "";
     return blocked_list;
   };
 
-  const getRelaxList = async () => {
+  const getRelaxList = async (): Promise<Array<RelaxListEntry>> => {
     const relax_list_data: string = await storage.get(ListType.RELAX_LIST);
-    const relax_list: Array<string> = relax_list_data
-      ? JSON.parse(relax_list_data)
-      : [];
+
+    let relax_list: Array<RelaxListEntry> = [];
+
+    try {
+      relax_list = relax_list_data ? JSON.parse(relax_list_data) : [];
+
+      if (
+        !Array.isArray(relax_list) ||
+        !relax_list.every((entry) => "URL" in entry && "reason" in entry)
+      ) {
+        throw new Error("Invalid RelaxList data structure");
+      }
+    } catch (err) {
+      console.error("Failed to parse relaxList", err);
+    }
+
     console.debug("relax_list:", relax_list);
     return relax_list;
   };
 
   let blocked_list: Array<string> = await getBlockedList();
-  let relax_list: Array<string> = await getRelaxList();
+  let relax_list: Array<RelaxListEntry> = await getRelaxList();
 
   storage.watch({
     blocked_list: async (c) => {
@@ -62,8 +75,16 @@ let lastBlockedURL = "";
         tab.url &&
         blocked_list.length > 0 &&
         blocked_list.some((blockedUrl) => tab.url.includes(blockedUrl));
-      console.log("is_pomodoro_running: ", is_pomodoro_running());
-      if (is_blocked && !pom_is_focus_paused && is_pomodoro_running()) {
+      const is_relax_page: boolean = relax_list.some((entry) =>
+        tab.url.includes(entry.URL)
+      );
+      tab.url && console.log("is_pomodoro_running: ", is_pomodoro_running());
+      if (
+        is_blocked &&
+        !pom_is_focus_paused &&
+        is_pomodoro_running() &&
+        !is_relax_page
+      ) {
         lastBlockedURL = tab.url;
         chrome.tabs.update(tabId, { url: "/tabs/splash-page.html" });
       }

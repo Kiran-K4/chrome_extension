@@ -2,16 +2,11 @@ import { useEffect, useState } from "react";
 
 import { Storage } from "@plasmohq/storage";
 
-import { ListType } from "~types";
+import { ListType, type RelaxListEntry } from "~types";
 
 import "./settings-style.css";
 
-import {
-  CodeIcon,
-  MinusIcon,
-  PlusIcon,
-  TrashIcon
-} from "@radix-ui/react-icons";
+import { CodeIcon, MinusIcon, PlusIcon } from "@radix-ui/react-icons";
 import {
   Box,
   Button,
@@ -19,11 +14,15 @@ import {
   Heading,
   IconButton,
   Kbd,
+  Link,
   Table,
-  TextField
+  TextField,
+  Tooltip
 } from "@radix-ui/themes";
 
 import TimePicker from "~components/time-picker";
+
+document.documentElement.setAttribute("class", "dark"); // if something isn't getting styled, try moving it out
 
 const BlockList = () => {
   const storage = new Storage(); // ref
@@ -31,7 +30,6 @@ const BlockList = () => {
   const [newPage, setNewPage] = useState("");
 
   useEffect(() => {
-    document.documentElement.setAttribute("class", "dark"); // if something isn't getting styled, try moving it out
     const loadPages = async () => {
       const blockedPagesData = await storage.get("blocked_list");
       console.log("obj:", blockedPagesData);
@@ -119,40 +117,74 @@ const BlockList = () => {
             </Table.Body>
           </Table.Root>
         </Flex>
-        <Flex direction="column" gap="2">
-          <Heading as="h2">Relax List</Heading>
-          <Table.Root variant="surface">
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeaderCell>URL</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell>Reason</Table.ColumnHeaderCell>
-                <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
-              </Table.Row>
-            </Table.Header>
-
-            <Table.Body>
-              {blockedPages.map((page, index) => (
-                <Table.Row key={index}>
-                  <Table.RowHeaderCell>{page}</Table.RowHeaderCell>
-                  <Table.Cell>
-                    bla bla bla to... asdada dadas adasdadad ad asd asd asa das
-                    asd ad asd as asd ad ad a asd ada d sd ad d{" "}
-                  </Table.Cell>
-                  <Table.Cell>
-                    <IconButton
-                      // onClick={() => handleDeletePage(index)}
-                      color="jade"
-                      variant="ghost">
-                      <MinusIcon width="18" height="18"></MinusIcon>
-                    </IconButton>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
-        </Flex>
       </Flex>
     </Box>
+  );
+};
+
+const RelaxList = () => {
+  const storage = new Storage();
+  const [relaxPages, setRelaxPages] = useState<Array<RelaxListEntry>>([]);
+
+  useEffect(() => {
+    const loadList = async () => {
+      const relaxListData = await storage.get("relax_list");
+      console.log("relx objParsed:", JSON.parse(relaxListData));
+      setRelaxPages(JSON.parse(relaxListData));
+    };
+
+    loadList();
+  }, []);
+
+  const handleDeleteEntry = async (index: number): Promise<void> => {
+    const updatedRelaxPages = [...relaxPages];
+    updatedRelaxPages.splice(index, 1);
+    setRelaxPages(updatedRelaxPages);
+    await storage.set(ListType.RELAX_LIST, JSON.stringify(updatedRelaxPages));
+  };
+
+  return (
+    <Flex direction="column" gap="2">
+      <Heading as="h2">Relax List</Heading>
+      <Table.Root variant="surface">
+        <Table.Header>
+          <Table.Row>
+            <Table.ColumnHeaderCell>URL</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Intent</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Dur?</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+          </Table.Row>
+        </Table.Header>
+
+        <Table.Body>
+          {relaxPages.map((entry: RelaxListEntry, index) => (
+            <Table.Row key={index}>
+              <Table.RowHeaderCell
+                style={{
+                  maxWidth: 140,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}>
+                <Tooltip content={entry.URL}>
+                  <Link>{entry.URL}</Link>
+                </Tooltip>
+              </Table.RowHeaderCell>
+              <Table.Cell>{entry.reason}</Table.Cell>
+              <Table.Cell>{entry.duration}</Table.Cell>
+              <Table.Cell>
+                <IconButton
+                  onClick={() => handleDeleteEntry(index)}
+                  color="jade"
+                  variant="ghost">
+                  <MinusIcon width="18" height="18"></MinusIcon>
+                </IconButton>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table.Root>
+    </Flex>
   );
 };
 
@@ -160,6 +192,7 @@ function SettingsPage() {
   return (
     <Flex direction="column" gap="3">
       <BlockList />
+      <RelaxList />
       <Heading as="h2">Hours</Heading>
       <TimePicker />
     </Flex>
