@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { IntentionProvider } from "./context/intentionPopupContext";
+import { useIntention } from "./context/intentionPopupContext";
 
-const App = () => {
-  const [intention, setIntention] = useState("");
+const IntentionPopup = () => {
+  const { intention, setIntention, isIntentionSet } = useIntention();
   const [time, setTime] = useState(0);
 
+  console.log("🧠 Current Intention:", intention);
+  console.log("✅ Has Intention?", hasIntention);
   // Simulate timer
   useEffect(() => {
     const interval = setInterval(() => setTime((t) => t + 1), 1000);
@@ -13,21 +17,15 @@ const App = () => {
 
   // Get initial intention
   useEffect(() => {
-    window.postMessage({ type: "GET_INTENTION" }, "*");
-
-    const handler = (event: MessageEvent) => {
-      if (event.data.type === "SET_INTENTION") {
-        setIntention(event.data.payload);
-      }
-    };
-
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
+    const saved = sessionStorage.getItem("intention");
+    if (saved) {
+      setIntention(saved);
+    }
   }, []);
 
   const handleSave = () => {
+    sessionStorage.setItem("intention", intention); // Save temporarily
     window.postMessage({ type: "SAVE_INTENTION", payload: intention }, "*");
-    alert("Focus Block Intention saved!");
     document.getElementById("focus-popup")?.remove();
   };
 
@@ -147,4 +145,6 @@ const buttonStyle: React.CSSProperties = {
 const container = document.createElement("div");
 document.body.appendChild(container);
 const root = createRoot(container);
-root.render(<App />);
+root.render(
+<IntentionProvider><IntentionPopup />
+</IntentionProvider>);

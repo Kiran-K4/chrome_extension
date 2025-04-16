@@ -1,7 +1,5 @@
 console.log("Content script injected");
 
-// Inject the popup if not already present
-chrome.storage.local.get("intention", (result) => {
   if (!document.getElementById("intention-popup-script")) {
     const script = document.createElement("script");
     script.src = chrome.runtime.getURL("floatingPopup.js");
@@ -9,24 +7,20 @@ chrome.storage.local.get("intention", (result) => {
     script.type = "module";
     document.body.appendChild(script);
   }
-});
 
 // Messaging bridge between injected popup and chrome extension APIs
 window.addEventListener("message", (event) => {
   // Only accept messages from the same window
   if (event.source !== window) return;
 
-  if (event.data.type === "GET_INTENTION") {
-    chrome.storage.local.get("intention", (result) => {
-      window.postMessage({
-        type: "SET_INTENTION",
-        payload: result.intention || ""
-      }, "*");
-    });
-  }
-
   if (event.data.type === "SAVE_INTENTION") {
-    chrome.storage.local.set({ intention: event.data.payload });
+    const intention = event.data.payload;
+
+    // Send it to React app via event
+    const customEvent = new CustomEvent("intention-saved", {
+      detail: intention,
+    });
+    window.dispatchEvent(customEvent); // React listens for this
   }
 });
 
