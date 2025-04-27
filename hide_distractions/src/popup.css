@@ -1,0 +1,89 @@
+/* Ensure full viewport coverage for the popup */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+  }
+  
+  /* Popup container */
+  .popup {
+    width: 280px;
+    background-color: #ffc88b;
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Popup header */
+  .popup-header {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-bottom: 10px;
+  }
+  
+  /* Logo inside header */
+  .popup-logo {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+  }
+
+  .popup-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+  }
+  
+  /* Body */
+  .popup-body {
+    margin-bottom: 16px;
+  }
+  
+  .popup-body label {
+    display: block;
+    font-weight: bold;
+    margin: 8px 0 4px;
+  }
+  
+  .popup-body input[type="text"],
+  .popup-body input[type="number"] {
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+  }
+  
+  /* Duration row styling */
+  .popup-duration-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .popup-duration-input {
+    width: 60px; /* Slightly narrower for minutes */
+  }
+  
+  /* Submit button */
+  .popup-submit {
+    display: block; 
+    margin: 0 auto; 
+    background-color: #fff;
+    border: 1px solid #fab363;
+    color: #fab363;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .popup-submit:hover {
+    background-color: #f1f1f1;
+  }
