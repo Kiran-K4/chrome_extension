@@ -23,7 +23,7 @@
   "web_accessible_resources": [
     {
       "resources": ["floatingPopup.js", 
-      "assets/*"], // or "floatingPopup.js" if renamed
+      "assets/*"],
       "matches": ["<all_urls>"]
     }
   ],
