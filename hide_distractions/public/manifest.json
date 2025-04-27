@@ -5,7 +5,7 @@
     "description": "Hide distractions using a clean Chrome Extension.",
     "permissions": ["activeTab", "scripting"],
     "action": {
-      "default_popup": "popup.html",
+      "default_popup": "src/popup.html",
       "default_icon": {
         "128": "icons/icon128.png"
       }
