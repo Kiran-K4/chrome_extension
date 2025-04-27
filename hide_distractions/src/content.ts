@@ -1,5 +1,6 @@
 console.log("Content script injected");
 
+  /// to create the popup element if it is not existed.
   if (!document.getElementById("intention-popup-script")) {
     const script = document.createElement("script");
     script.src = chrome.runtime.getURL("floatingPopup.js");

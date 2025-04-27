@@ -1,21 +1,26 @@
+/// Context to handle the intention popup. 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
+/// inteface to store the intention details.
 interface IntentionContextProps{
   intention: string;
   setIntention:(value :string) => void;
   isIntentionSet : boolean;
 }
 
+/// instance creation for the context of intention popup
 const IntentionContext = createContext<IntentionContextProps>({
   intention: "",
   setIntention: () => {},
   isIntentionSet : false,
 });
 
+/// function of the intetion popup
 export const IntentionProvider = ({ children }: { children: ReactNode }) => {
   const [intention, setIntention] = useState("");
   const [isIntentionSet, setisIntentionSet] = useState(false);
 
+  /// use effect to get the previoiusly stored intention when popup loaded
   useEffect(() => {
 
     const saved = sessionStorage.getItem("intention");
@@ -40,6 +45,7 @@ export const IntentionProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  /// to set the new intetnion.
   return (<IntentionContext.Provider
     value={{
       intention,

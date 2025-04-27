@@ -7,8 +7,9 @@ const IntentionPopup = () => {
   const { intention, setIntention, isIntentionSet } = useIntention();
   const [time, setTime] = useState(0);
 
-  console.log("🧠 Current Intention:", intention);
-  console.log("✅ Has Intention?", hasIntention);
+  console.log("Current Intention:", intention);
+  console.log("Has Intention?", isIntentionSet);
+
   // Simulate timer
   useEffect(() => {
     const interval = setInterval(() => setTime((t) => t + 1), 1000);
@@ -23,13 +24,10 @@ const IntentionPopup = () => {
     }
   }, []);
 
+  /// to handle the intention save fucntionality
   const handleSave = () => {
     sessionStorage.setItem("intention", intention); // Save temporarily
     window.postMessage({ type: "SAVE_INTENTION", payload: intention }, "*");
-    document.getElementById("focus-popup")?.remove();
-  };
-
-  const handleCancel = () => {
     document.getElementById("focus-popup")?.remove();
   };
 
@@ -49,9 +47,6 @@ const IntentionPopup = () => {
         <h2 style={{ marginBottom: "18px", color: "#f58a07" }}>
           You are currretly accessing distraction site.
         </h2>
-        <p style={{ fontWeight: "bold" }}>{`00:${time
-          .toString()
-          .padStart(2, "0")}`}</p>
         <p style={{ fontSize: "14px" }}>
           Can you share your intention to visit this site?
         </p>
@@ -64,13 +59,7 @@ const IntentionPopup = () => {
 
         <div style={buttonContainerStyle}>
           <button
-            onClick={handleCancel}
-            style={{ ...buttonStyle, backgroundColor: "#f3c3a0" }}
-          >
-            Cancel
-          </button>
-          <button
-            disabled={intention.trim().length < 5}
+            disabled={intention.trim().length < 5} ///enable or disable  proceeed button based on the intetnion entered.
             onClick={handleSave}
             style={{
               ...buttonStyle,
@@ -146,5 +135,7 @@ const container = document.createElement("div");
 document.body.appendChild(container);
 const root = createRoot(container);
 root.render(
-<IntentionProvider><IntentionPopup />
-</IntentionProvider>);
+  <IntentionProvider>
+    <IntentionPopup />
+  </IntentionProvider>
+);
