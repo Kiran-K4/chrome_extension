@@ -14,12 +14,14 @@ const sidebarObserver = new MutationObserver(() => {
 
   sectionsToBlur.forEach((section, index) => {
     //To blur and disable interactions only for specfic sections that is index 1 and index 2
-    if (index === 1 || index === 2) {
+    if (index === 1 || index === 2 || index === 3) {
       const el = section as HTMLElement;
       //To apply the blur effect 
       el.style.filter = 'blur(6px)';
       //To disable the mouse hovering or other mouse interactions
       el.style.pointerEvents = 'none'; 
+      //To disable the text selection
+      el.style.userSelect = 'none'
     }
   });
 });
