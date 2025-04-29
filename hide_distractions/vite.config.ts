@@ -9,6 +9,11 @@ const __dirname = resolve(__filename, '..')
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: 5173,
+    strictPort: true,
+    hmr: true,
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -19,7 +24,9 @@ export default defineConfig({
         content: resolve(__dirname, 'src/content.ts')
       },
       output: {
-        entryFileNames: '[name].js'
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name].[hash].js',
+        assetFileNames: 'assets/[name].[ext]'
       }
     }
   }
