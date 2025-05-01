@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IntentionProvider } from "./context/intentionPopupContext";
 import { useIntention } from "./context/intentionPopupContext";
-import "./styles";
+//import "./styles";
 
 const containerId = "focus-popup-container";
 const IntentionPopup = () => {
@@ -127,7 +127,7 @@ const IntentionPopup = () => {
 
         <div className="focus-button-container">
           <button
-            disabled={intention.trim().length < 5 || !duration || showWarning} ///enable or disable  proceeed button based on the intetnion entered.
+            disabled={proceedDisabled} ///enable or disable  proceeed button based on the intetnion entered.
             onClick={handleSave}
             className="focus-button"
             style={{
