@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { IntentionProvider } from './context/intentionPopupContext';
-import SidebarBlurToggle from './Sidebarblur'; // ✅ Include the toggle
+import Sidebarblur from './Sidebarblur'; 
 
 const App = () => {
   return (
     <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: 20, marginBottom: 12 }}>Focus</h1>
-      <SidebarBlurToggle />
+      <h1 style={{ fontSize: 20, marginBottom: 12 }}>Focus Bear</h1>
+      <Sidebarblur />
     </div>
   );
 };

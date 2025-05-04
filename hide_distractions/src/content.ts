@@ -8,16 +8,82 @@ if (!document.getElementById("intention-popup-script")) {
   document.body.appendChild(script);
 }
 
-let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let isBlurEnabled = true;
 
-// --- LISTEN FOR TOGGLE MESSAGE ---
+const applyBlurToSections = () => {
+  const sections = document.querySelectorAll("ytd-guide-section-renderer");
+  sections.forEach((section, index) => {
+    if ([1, 2, 3].includes(index)) {
+      const el = section as HTMLElement;
+      el.style.filter = "blur(6px)";
+      el.style.pointerEvents = "none";
+      el.style.userSelect = "none";
+    }
+  });
+};
+
+const blurChipsBar = () => {
+  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
+  if (chips) {
+    const height = chips.offsetHeight;
+
+    chips.style.filter = "blur(6px)";
+    chips.style.pointerEvents = "none";
+    chips.style.userSelect = "none";
+
+    // To avoid the layout shift
+    chips.style.height = `${height}px`;
+    chips.style.position = "relative";
+    chips.style.overflow = "hidden";
+    chips.style.display = "block";
+    chips.style.boxSizing = "border-box";
+  }
+};
+
+const removeBlur = () => {
+  document.querySelectorAll("ytd-guide-section-renderer").forEach((el) => {
+    const elem = el as HTMLElement;
+    elem.style.filter = "";
+    elem.style.pointerEvents = "";
+    elem.style.userSelect = "";
+  });
+
+  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
+  if (chips) {
+    chips.style.filter = "";
+    chips.style.pointerEvents = "";
+    chips.style.userSelect = "";
+
+    chips.style.height = "";
+    chips.style.position = "";
+    chips.style.overflow = "";
+    chips.style.display = "";
+    chips.style.boxSizing = "";
+  }
+};
+
+const applyBlurImmediately = () => {
+  applyBlurToSections();
+  blurChipsBar();
+};
+
+
+const sidebarObserver = new MutationObserver(() => {
+  if (isBlurEnabled) applyBlurToSections();
+});
+
+const chipsObserver = new MutationObserver(() => {
+  if (isBlurEnabled) blurChipsBar();
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { type, payload } = message;
 
   if (type === "TOGGLE_BLUR") {
     isBlurEnabled = payload;
     console.log("[FocusBear] TOGGLE_BLUR received:", isBlurEnabled);
+
+    chrome.storage.local.set({ blurEnabled: isBlurEnabled });
 
     if (isBlurEnabled) {
       applyBlurImmediately();
@@ -31,70 +97,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
+  isBlurEnabled = blurEnabled;
 
-// --- BLUR FUNCTIONALITY ---
-
-const applyBlurToSections = () => {
-  const sectionsToBlur = document.querySelectorAll("ytd-guide-section-renderer");
-  sectionsToBlur.forEach((section, index) => {
-    if ([1, 2, 3].includes(index)) {
-      const el = section as HTMLElement;
-      el.style.filter = "blur(6px)";
-      el.style.pointerEvents = "none";
-      el.style.userSelect = "none";
-    }
-  });
-};
-
-const blurTopicChips = () => {
-  const chipsBar = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
-  if (chipsBar) {
-    chipsBar.style.filter = "blur(6px)";
-    chipsBar.style.pointerEvents = "none";
-    chipsBar.style.userSelect = "none";
+  if (isBlurEnabled) {
+    applyBlurImmediately();
+    sidebarObserver.observe(document.body, { childList: true, subtree: true });
+    chipsObserver.observe(document.body, { childList: true, subtree: true });
   }
-};
-
-const applyBlurImmediately = () => {
-  applyBlurToSections();
-  blurTopicChips();
-};
-
-const removeBlur = () => {
-  document.querySelectorAll("ytd-guide-section-renderer").forEach((el) => {
-    const elem = el as HTMLElement;
-    elem.style.filter = "";
-    elem.style.pointerEvents = "";
-    elem.style.userSelect = "";
-  });
-
-  const chipsBar = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
-  if (chipsBar) {
-    chipsBar.style.filter = "";
-    chipsBar.style.pointerEvents = "";
-    chipsBar.style.userSelect = "";
-  }
-};
-
-// --- MUTATION OBSERVERS ---
-const sidebarObserver = new MutationObserver(() => {
-  if (isBlurEnabled) applyBlurToSections();
-});
-
-const chipsObserver = new MutationObserver(() => {
-  if (isBlurEnabled) blurTopicChips();
-});
-
-// --- INITIAL SETUP ---
-if (isBlurEnabled) {
-  applyBlurImmediately();
-  sidebarObserver.observe(document.body, { childList: true, subtree: true });
-  chipsObserver.observe(document.body, { childList: true, subtree: true });
-}
-
-// Remove any YouTube distractions
-const selectorsToHide = ["#comments", ".sidebar", "ytd-watch-next-secondary-results-renderer"];
-selectorsToHide.forEach((selector) => {
-  const el = document.querySelector(selector);
-  if (el) el.remove();
 });
