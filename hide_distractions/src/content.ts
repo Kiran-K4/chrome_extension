@@ -336,6 +336,79 @@ function addTotalBlocker() {
   }, { capture: true, passive: false });
 }
 
+function addEnhancedSearchBarFunctionality() {
+  const searchStyle = document.createElement('style');
+  searchStyle.id = 'focus-bear-enhanced-search';
+  searchStyle.textContent = `
+    /* Make search bar and related elements fully interactive */
+    ytd-searchbox,
+    #search-input,
+    #search-form,
+    #search-container,
+    #search-icon-legacy,
+    #container.ytd-searchbox,
+    input.ytd-searchbox,
+    #search.ytd-searchbox,
+    #search-input.ytd-searchbox,
+    .ytd-searchbox-spt,
+    ytd-masthead form,
+    ytd-masthead input,
+    ytd-masthead button,
+    .ytd-searchbox[role="combobox"],
+    #search-clear-button,
+    #search.ytd-searchbox input,
+    #search-input > input,
+    #search-input.ytd-searchbox > input,
+    #search.ytd-searchbox > #container,
+    ytd-searchbox[has-focus],
+    ytd-searchbox[has-focus] #container.ytd-searchbox {
+      pointer-events: auto !important;
+      filter: none !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      cursor: text !important;
+      z-index: 100002 !important;
+      position: relative !important;
+      opacity: 1 !important;
+      background: white !important;
+    }
+
+    /* Ensure search suggestions are visible and interactive */
+    ytd-unified-search-suggestions-renderer,
+    #suggestions-list,
+    #suggestions.ytd-searchbox,
+    ytd-search-suggestion-renderer,
+    .sbdd_b,
+    .sbsb_a,
+    .sbdd_a {
+      pointer-events: auto !important;
+      filter: none !important;
+      user-select: text !important;
+      z-index: 100002 !important;
+      position: relative !important;
+      background: white !important;
+      opacity: 1 !important;
+    }
+
+    /* Keep masthead above blur */
+    ytd-masthead {
+      z-index: 100002 !important;
+      position: relative !important;
+      background: white !important;
+    }
+  `;
+  
+  document.head.appendChild(searchStyle);
+
+  // Ensure search input is focusable
+  const searchInput = document.querySelector('input#search') as HTMLInputElement;
+  if (searchInput) {
+    searchInput.style.pointerEvents = 'auto';
+    searchInput.style.userSelect = 'text';
+    searchInput.style.webkitUserSelect = 'text';
+  }
+}
+
 function blurYouTubeFeed() {
   const existingStyle = document.querySelector('#focus-bear-style');
   if (existingStyle) existingStyle.remove();
@@ -466,60 +539,230 @@ function blurYouTubeFeed() {
   addStrictClickBlocker();
   addAbsoluteBlocker();
   addTotalBlocker();
+  addEnhancedSearchBarFunctionality();
 }
 
 function removeBlur() {
-  const style = document.querySelector('#focus-bear-style');
-  if (style) style.remove();
-  
-  // Remove the overlay
-  const overlay = document.querySelector('#focus-bear-overlay');
-  if (overlay) overlay.remove();
-  
-  // Remove strict blocker
-  const contentBlocker = document.querySelector('#focus-bear-content-blocker');
-  if (contentBlocker) contentBlocker.remove();
-  
-  // Remove absolute blocker
-  const absoluteBlocker = document.querySelector('#focus-bear-absolute-blocker');
-  if (absoluteBlocker) absoluteBlocker.remove();
+  // Remove all styles except search functionality
+  const elementsToRemove = [
+    '#focus-bear-style',
+    '#focus-bear-overlay',
+    '#focus-bear-content-blocker',
+    '#focus-bear-absolute-blocker',
+    '#focus-bear-total-block'
+  ].join(',');
 
-  // Remove total blocker
-  const totalBlockStyle = document.querySelector('#focus-bear-total-block');
-  if (totalBlockStyle) totalBlockStyle.remove();
+  const elements = document.querySelectorAll(elementsToRemove);
+  elements.forEach(el => el.remove());
+
+  // Keep search functionality while removing other effects
+  const style = document.createElement('style');
+  style.id = 'focus-bear-reset';
+  style.textContent = `
+    ytd-rich-grid-renderer,
+    ytd-rich-item-renderer,
+    ytd-video-renderer,
+    ytd-grid-video-renderer,
+    ytd-rich-grid-media,
+    ytd-thumbnail {
+      filter: none !important;
+      pointer-events: auto !important;
+      user-select: auto !important;
+      cursor: auto !important;
+      opacity: 1 !important;
+      transition: all 0.3s ease-in-out !important;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Remove the reset style after transition
+  setTimeout(() => {
+    const resetStyle = document.querySelector('#focus-bear-reset');
+    if (resetStyle) resetStyle.remove();
+    const transitionStyle = document.querySelector('#focus-bear-transition');
+    if (transitionStyle) transitionStyle.remove();
+  }, 300);
 }
 
-// Update the check and apply function
+// Simplify the disable process without page reload
+function simpleDisable() {
+  // Remove all Focus Bear elements and styles
+  const elementsToRemove = document.querySelectorAll([
+    '#focus-bear-style',
+    '#focus-bear-overlay',
+    '#focus-bear-content-blocker',
+    '#focus-bear-absolute-blocker',
+    '#focus-bear-total-block',
+    '#focus-bear-enhanced-search',
+    '#focus-bear-transition',
+    '#focus-bear-reset',
+    '#focus-bear-cleanup',
+    '#focus-bear-message'
+  ].join(','));
+
+  elementsToRemove.forEach(el => el.remove());
+
+  // Add a single cleanup style
+  const cleanup = document.createElement('style');
+  cleanup.id = 'focus-bear-final-cleanup';
+  cleanup.textContent = `
+    * {
+      filter: none !important;
+      pointer-events: auto !important;
+      user-select: auto !important;
+      cursor: auto !important;
+      opacity: 1 !important;
+    }
+    
+    a[href*="watch"],
+    a[href*="shorts"],
+    a[href*="playlist"] {
+      pointer-events: auto !important;
+      cursor: pointer !important;
+    }
+  `;
+  document.head.appendChild(cleanup);
+
+  // Remove cleanup style after a moment
+  setTimeout(() => {
+    const finalCleanup = document.querySelector('#focus-bear-final-cleanup');
+    if (finalCleanup) finalCleanup.remove();
+  }, 100);
+}
+
+// Add this new function to ensure search always works
+function ensureSearchFunctionality() {
+  const searchStyle = document.createElement('style');
+  searchStyle.id = 'focus-bear-permanent-search';
+  searchStyle.textContent = `
+    /* Always keep search and header elements interactive */
+    ytd-searchbox,
+    #search-input,
+    #search-form,
+    #search-container,
+    #search-icon-legacy,
+    #container.ytd-searchbox,
+    input.ytd-searchbox,
+    #search.ytd-searchbox,
+    #search-input.ytd-searchbox,
+    .ytd-searchbox-spt,
+    ytd-masthead form,
+    ytd-masthead input,
+    ytd-masthead button,
+    .ytd-searchbox[role="combobox"],
+    #search-clear-button,
+    #search.ytd-searchbox input,
+    #search-input > input,
+    #search-input.ytd-searchbox > input,
+    #search.ytd-searchbox > #container,
+    ytd-searchbox[has-focus],
+    ytd-searchbox[has-focus] #container.ytd-searchbox,
+    #masthead-container {
+      pointer-events: auto !important;
+      filter: none !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      cursor: text !important;
+      z-index: 999999 !important;
+      position: relative !important;
+      opacity: 1 !important;
+      background: white !important;
+    }
+
+    /* Keep search suggestions visible and interactive */
+    ytd-unified-search-suggestions-renderer,
+    #suggestions-list,
+    #suggestions.ytd-searchbox,
+    ytd-search-suggestion-renderer,
+    .sbdd_b,
+    .sbsb_a,
+    .sbdd_a,
+    ytd-searchbox #container {
+      pointer-events: auto !important;
+      filter: none !important;
+      user-select: text !important;
+      z-index: 999999 !important;
+      position: relative !important;
+      background: white !important;
+      opacity: 1 !important;
+    }
+
+    /* Ensure header stays above blur */
+    ytd-masthead {
+      z-index: 999999 !important;
+      position: relative !important;
+      background: white !important;
+    }
+  `;
+  document.head.appendChild(searchStyle);
+
+  // Directly ensure search input is interactive
+  const searchInput = document.querySelector('input#search') as HTMLInputElement;
+  if (searchInput) {
+    searchInput.style.cssText = `
+      pointer-events: auto !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      cursor: text !important;
+      z-index: 999999 !important;
+    `;
+  }
+}
+
+// Update the checkAndApplyHomepageBlur function
 function checkAndApplyHomepageBlur(isEnabled: boolean) {
-  console.log('Checking and applying blur:', isEnabled); // Debug log
+  console.log('Checking and applying blur:', isEnabled);
+  
+  // Always ensure search works
+  ensureSearchFunctionality();
   
   if (!isEnabled) {
-    removeBlur();
+    simpleDisable();
     return;
   }
 
-  // Apply immediately and retry to ensure it catches
-  blurYouTubeFeed();
-  blockVideoClicks(); // Add immediate click blocking
-  
-  // Also retry a few times to catch dynamic content
-  const retryTimes = [100, 500, 1000, 2000];
-  retryTimes.forEach(time => {
-    setTimeout(() => {
-      blurYouTubeFeed();
-      blockVideoClicks();
-    }, time);
+  requestAnimationFrame(() => {
+    blurYouTubeFeed();
+    blockVideoClicks();
   });
 }
 
-// Enhanced message listener
+// Update the MutationObserver to be more efficient
+const observer = new MutationObserver((mutations) => {
+  // Ensure search functionality on any content change
+  ensureSearchFunctionality();
+  
+  // Existing code...
+  chrome.storage.sync.get(['isBlockingEnabled'], (result) => {
+    if (result.isBlockingEnabled) {
+      requestAnimationFrame(() => {
+        blurYouTubeFeed();
+      });
+    }
+  });
+}).observe(document.body, {
+  childList: true,
+  subtree: true,
+  attributes: false,
+  characterData: false
+});
+
+// Update the message listener to handle the refresh
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'toggleBlocking') {
     console.log('Toggle blocking received:', request.isEnabled);
-    checkAndApplyHomepageBlur(request.isEnabled);
+    
+    if (!request.isEnabled) {
+      // If disabling, trigger auto refresh
+      simpleDisable();
+    } else {
+      // If enabling, apply blur normally
+      checkAndApplyHomepageBlur(true);
+    }
+    
     sendResponse({ success: true });
   }
-  return true; // Keep the message channel open for async response
+  return true;
 });
 
 // Enhanced URL change detection
