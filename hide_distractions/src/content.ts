@@ -1,6 +1,6 @@
 console.log("Content script injected");
 
-/// to create the popup element if it is not existed.
+// Inject floatingPopup if not already present
 if (!document.getElementById("intention-popup-script")) {
   const script = document.createElement("script");
   script.src = chrome.runtime.getURL("floatingPopup.js");
@@ -9,8 +9,44 @@ if (!document.getElementById("intention-popup-script")) {
   document.body.appendChild(script);
 }
 
+let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let isBlurEnabled = true;
 
+window.addEventListener("message", (event) => {
+  if (event.source !== window) return;
+
+  // Save intention (sent from popup to content)
+  if (event.data.type === "SAVE_INTENTION") {
+    const intention = event.data.payload;
+    const customEvent = new CustomEvent("intention-saved", { detail: intention });
+    window.dispatchEvent(customEvent);
+  }
+
+  // Start timer and dispatch event when finished
+  if (event.data.type === "START_FOCUS_TIMER") {
+    const durationInMinutes = event.data.payload;
+
+    if (focusTimer) clearTimeout(focusTimer);
+
+    console.log(`Starting focus timer for ${durationInMinutes} minutes.`);
+    focusTimer = setTimeout(() => {
+      console.log("Focus timer ended. Dispatching SHOW_POPUP event.");
+      window.dispatchEvent(new CustomEvent("show-popup-again"));
+    }, durationInMinutes * 60 * 1000);
+  }
+});
+
+// Hiding distractions
+const selectorsToHide = [
+  "#comments",
+  ".sidebar",
+  "ytd-watch-next-secondary-results-renderer",
+];
+
+for (const selector of selectorsToHide) {
+  const el = document.querySelector(selector);
+  if (el) el.remove();
+}
 const applyBlurToSections = () => {
   const sections = document.querySelectorAll("ytd-guide-section-renderer");
   sections.forEach((section, index) => {
@@ -31,8 +67,6 @@ const blurChipsBar = () => {
     chips.style.filter = "blur(6px)";
     chips.style.pointerEvents = "none";
     chips.style.userSelect = "none";
-
-    // To avoid the layout shift
     chips.style.height = `${height}px`;
     chips.style.position = "relative";
     chips.style.overflow = "hidden";
@@ -54,7 +88,6 @@ const removeBlur = () => {
     chips.style.filter = "";
     chips.style.pointerEvents = "";
     chips.style.userSelect = "";
-
     chips.style.height = "";
     chips.style.position = "";
     chips.style.overflow = "";
@@ -72,18 +105,16 @@ const applyBlurImmediately = () => {
 const sidebarObserver = new MutationObserver(() => {
   if (isBlurEnabled) applyBlurToSections();
 });
-
 const chipsObserver = new MutationObserver(() => {
   if (isBlurEnabled) blurChipsBar();
 });
+
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { type, payload } = message;
 
   if (type === "TOGGLE_BLUR") {
     isBlurEnabled = payload;
-    console.log("[FocusBear] TOGGLE_BLUR received:", isBlurEnabled);
-
     chrome.storage.local.set({ blurEnabled: isBlurEnabled });
 
     if (isBlurEnabled) {
