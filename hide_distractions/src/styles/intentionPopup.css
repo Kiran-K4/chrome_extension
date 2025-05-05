@@ -1,0 +1,81 @@
+/* Overlay backdrop */
+.focus-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+/* Popup box */
+.focus-popup-box {
+  padding: 30px;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+/* Heading inside popup */
+.focus-popup-box h2 {
+  margin-bottom: 18px;
+  color: #f58a07;
+}
+
+/* Paragraphs inside popup */
+.focus-popup-box p {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+
+/* Warning text */
+.focus-warning {
+  color: red;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+/* Textarea & select */
+.focus-input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* Button container */
+.focus-button-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Proceed button */
+.focus-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  flex: 1;
+  transition: background-color 0.2s;
+}
+
+.focus-button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.focus-button:not(:disabled) {
+  background-color: #f58a07;
+  color: #fff;
+  cursor: pointer;
+}

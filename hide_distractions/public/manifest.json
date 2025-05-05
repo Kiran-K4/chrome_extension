@@ -6,7 +6,7 @@
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["*://*.youtube.com/*"],
   "action": {
-    "default_popup": "src/popup.html",
+    "default_popup": "popup.html",
     "default_icon": {
       "128": "icons/icon128.png"
     }
@@ -17,13 +17,13 @@
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "css": ["assets/intentionPopup.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["floatingPopup.js", 
-      "assets/*"],
+      "resources": ["floatingPopup.js", "assets/*"],
       "matches": ["<all_urls>"]
     }
   ],

@@ -6,7 +6,7 @@
   "author": "Kiran Kulkarni",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/src/popup.html dist/ && cp public/manifest.json dist/ && cp -r public/icons dist/",
+    "build": "vite build && cp src/styles/intentionPopup.css dist/assets/intentionPopup.css && cp dist/src/popup.html dist/ && cp public/manifest.json dist/ && cp -r public/icons dist/",
     "lint": "eslint .",
     "preview": "vite preview"
   },
