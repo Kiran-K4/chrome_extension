@@ -3,6 +3,8 @@ console.log("Content script injected");
 const STYLE_ID = 'focus-bear-hide-comments-style';
 const selectorsToHide = [
   '#comments',
+  'ytd-item-section-renderer[static-comments-header]',
+  '#continuations',      
   '.sidebar',
   // 'ytd-watch-next-secondary-results-renderer'
 ];
@@ -42,13 +44,6 @@ window.addEventListener("message", (event) => {
     }, durationInMinutes * 60 * 1000);
   }
 });
-
-// Hiding distractions
-// const selectorsToHide = [
-//   "#comments",
-//   ".sidebar",
-//   "ytd-watch-next-secondary-results-renderer",
-// ];
 
 for (const selector of selectorsToHide) {
   const el = document.querySelector(selector);
@@ -146,17 +141,7 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   }
 });
 
-
-
-
-// const STYLE_ID = 'focus-bear-hide-comments-style';
-// const selectorsToHide = [
-//   '#comments',
-//   // '.sidebar',
-//   // 'ytd-watch-next-secondary-results-renderer'
-// ];
-
-// inject a <style> to hide everything matching our selectors
+// Hide everything matching our selectors
 function applyHide() {
   if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement('style');
@@ -174,9 +159,12 @@ function applyShow() {
 }
 
 // on page load, read storage and hide if needed
-chrome.storage.local.get({ commentsHidden: false }, ({ commentsHidden }) => {
-  if (commentsHidden) applyHide();
+const commentsObserver = new MutationObserver(() => {
+  chrome.storage.local.get('commentsHidden', ({ commentsHidden }) => {
+    if (commentsHidden) applyHide();
+  });
 });
+commentsObserver.observe(document.body, { childList: true, subtree: true });
 
 // listen for your popup toggle
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -191,7 +179,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         sendResponse({ status: nowHidden ? 'hidden' : 'shown' });
       });
     });
-    // return true so we can sendResponse asynchronously
     return true;
   }
 });
