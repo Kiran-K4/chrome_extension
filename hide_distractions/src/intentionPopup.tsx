@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { IntentionProvider } from "./context/intentionPopupContext";
 import { useIntention } from "./context/intentionPopupContext";
 import "./styles/intentionPopup.css";
+import bearLogo from "../public/icons/bearLogo.png";
 
 const containerId = "focus-popup-container";
 const IntentionPopup = () => {
@@ -91,33 +92,35 @@ const IntentionPopup = () => {
 
   return (
     <div id="focus-popup" className="focus-popup">
-      <div className="focus-popup-box">
+      <div className="focus-popup-box">  
+        {/* Logo */}
+        <img src={bearLogo} alt="Bear logo" className="focus-logo" />
         <h2>
-          You are currently accessing a distraction site.
+          Hello there! Up to mischief are we?
         </h2>
         <p>
-          Can you share your intention to visit this site?
+          What plans are brewing or should I say bearing?
         </p>
         <textarea
           value={intention}
           onChange={handleIntentionChange}
-          placeholder="Type your reason here..."
+          placeholder="Type..."
           className="focus-input"
         />
         {showWarning && (
           <p className="focus-warning">
-            Please provide a more detailed explanation (at least 15 characters).
+            Wow that's a while! I think a more thoughtful reason would help keep our focus! (15+ characters).
           </p>
         )}
         <p>
-          Please select how long you intend to stay on this site.
+          How long should we watch together for?
         </p>
         <select
           value={duration}
           onChange={handleDurationChange}
           className="focus-input"
         >
-          <option value="">Select focus time (minutes)</option>
+          <option value="">Time... </option>
           <option value="1">1 minute</option>
           <option value="5">5 minutes</option>
           <option value="10">10 minutes</option>
@@ -131,7 +134,7 @@ const IntentionPopup = () => {
             onClick={handleSave}
             className="focus-button"
           >
-            Proceed
+            Lets dig in!
           </button>
         </div>
       </div>
@@ -141,6 +144,7 @@ const IntentionPopup = () => {
 
 if (!document.getElementById(containerId)) {
   const container = document.createElement("div");
+  container.id = containerId;
   document.body.appendChild(container);
   const root = createRoot(container);
   root.render(
