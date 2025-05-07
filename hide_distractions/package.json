@@ -6,13 +6,13 @@
   "author": "Kiran Kulkarni",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp dist/src/popup.html dist/ && cp public/manifest.json dist/ && cp -r public/icons dist/",
+    "build": "vite build && shx mkdir -p dist/assets && shx cp src/styles/intentionPopupStyle.css dist/assets/ && shx cp public/manifest.json dist/ && cpx \"public/icons/**/*\" dist/icons && shx cp dist/src/popup.html dist/",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -20,10 +20,12 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "cpx": "^1.5.0",
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "shx": "^0.4.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"
