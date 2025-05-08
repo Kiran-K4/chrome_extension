@@ -1,7 +1,6 @@
 console.log("Content script injected");
 
 const COMMENT_BLUR_ID = 'focus-bear-comment-blur-style';
-// const STYLE_ID = 'focus-bear-hide-comments-style';
 const selectorsToHide = [
   '#comments',
   'ytd-item-section-renderer[static-comments-header]',
@@ -142,23 +141,7 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   }
 });
 
-// // Hide everything matching our selectors
-// function applyHide() {
-//   if (document.getElementById(STYLE_ID)) return;
-//   const style = document.createElement('style');
-//   style.id = STYLE_ID;
-//   style.textContent = selectorsToHide
-//     .map(sel => `${sel} { display: none !important; }`)
-//     .join('\n');
-//   document.head.appendChild(style);
-// }
-
-// // remove that <style>, showing them again
-// function applyShow() {
-//   const style = document.getElementById(STYLE_ID);
-//   if (style) style.remove();
-// }
-
+// Blur comments
 function applyCommentBlur() {
   if (document.getElementById(COMMENT_BLUR_ID)) return;
   const style = document.createElement('style');
@@ -188,30 +171,7 @@ const commentsObserver = new MutationObserver(() => {
 });
 commentsObserver.observe(document.body, { childList: true, subtree: true });
 
-// // on page load, read storage and hide if needed
-// const commentsObserver = new MutationObserver(() => {
-//   chrome.storage.local.get('commentsHidden', ({ commentsHidden }) => {
-//     if (commentsHidden) applyHide();
-//   });
-// });
-// commentsObserver.observe(document.body, { childList: true, subtree: true });
-
 // listen for your popup toggle
-// chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-//   if (msg.action === 'toggleComments') {
-//     // read current
-//     chrome.storage.local.get({ commentsHidden: false }, ({ commentsHidden }) => {
-//       const nowHidden = !commentsHidden;
-//       if (nowHidden) applyHide();
-//       else applyShow();
-//       // save and reply
-//       chrome.storage.local.set({ commentsHidden: nowHidden }, () => {
-//         sendResponse({ status: nowHidden ? 'hidden' : 'shown' });
-//       });
-//     });
-//     return true;
-//   }
-// });
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === 'toggleComments') {
     chrome.storage.local.get({ commentsHidden: false }, ({ commentsHidden }) => {
