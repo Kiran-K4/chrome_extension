@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { IntentionProvider } from './context/intentionPopupContext';
-import { useState, useEffect } from 'react'
-import ReactDOM from 'react-dom/client'
 
 const App = () => {
   const [blurEnabled, setBlurEnabled] = useState(true);
@@ -17,6 +15,7 @@ const App = () => {
     });
   }, []);
 
+  // Blur sidebar and chips
   const handleBlurToggle = async () => {
     const newValue = !blurEnabled;
     setBlurEnabled(newValue);
@@ -31,6 +30,7 @@ const App = () => {
     }
   };
 
+  // Blur comments
   const handleCommentsToggle = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
@@ -51,15 +51,14 @@ const App = () => {
       <h1 style={{ fontSize: 20, marginBottom: 12 }}>Focus Bear</h1>
 
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input type="checkbox" checked={blurEnabled} onChange={handleBlurToggle} />
-          {blurEnabled ? 'Blur distractions' : 'Unblurred'}
-        </label>
+        <button onClick={handleBlurToggle}>
+          {blurEnabled ? 'Show sidebar/chips' : 'Blur sidebar/chips'}
+        </button>
       </div>
 
       <div>
         <button onClick={handleCommentsToggle}>
-          {hidden ? 'Show comments' : 'Hide comments'}
+          {hidden ? 'Show comments' : 'Blur comments'}
         </button>
       </div>
     </div>
