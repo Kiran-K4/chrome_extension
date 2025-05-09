@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { IntentionProvider } from "./context/intentionPopupContext";
 import { useIntention } from "./context/intentionPopupContext";
 import "./styles/intentionPopupStyle.css";
+import {translations} from "./utils/popupContents"
 
 const containerId = "focus-popup-container";
 const IntentionPopup = () => {
@@ -14,6 +15,11 @@ const IntentionPopup = () => {
 
   console.log("Current Intention:", intention);
   console.log("Has Intention?", isIntentionSet);
+
+
+  // 🌍 Detect language
+  const lang = navigator.language?.substring(0, 2) || "en";
+  const translatedContent = translations[lang] || translations["en"];
 
   /// use effect to handle the event listeners.
   useEffect(() => {
@@ -93,24 +99,24 @@ const IntentionPopup = () => {
     <div id="focus-popup"style={overlayStyle}>
   <div style={popupBoxStyle}>
         <h2 style={{ marginBottom: "18px", color: "#f58a07" }}>
-          You are currretly accessing distraction site.
+          {translatedContent.heading}
         </h2>
         <p style={{ fontSize: "14px" }}>
-          Can you share your intention to visit this site?
+          {translatedContent.question}
         </p>
         <textarea
           value={intention}
           onChange={handleIntentionChange}
-          placeholder="Type your reason here..."
+          placeholder={translatedContent.placeholder}
           style={inputStyle}
         />
         {showWarning && (
           <p style={{ color: "red", fontSize: "12px", marginBottom: "10px" }}>
-            Please provide a more detailed explanation (at least 15 characters).
+           {translatedContent.warning}
           </p>
         )}
         <p style={{ fontSize: "14px" }}>
-          Please select how long you intend to stay on this site.
+          {translatedContent.dropdownLabel}
         </p>
         <select
           value={duration}
@@ -136,7 +142,7 @@ const IntentionPopup = () => {
               cursor: proceedDisabled ? "not-allowed" : "pointer",
             }}
           >
-            Proceed.
+            {translatedContent.proceed}
           </button>
         </div>
       </div>
