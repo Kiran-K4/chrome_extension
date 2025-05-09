@@ -1,6 +1,15 @@
 console.log("Content script injected");
 
-/// to create the popup element if it is not existed.
+const COMMENT_BLUR_ID = 'focus-bear-comment-blur-style';
+const selectorsToHide = [
+  '#comments',
+  'ytd-item-section-renderer[static-comments-header]',
+  '#continuations',      
+  '.sidebar',
+  // 'ytd-watch-next-secondary-results-renderer'
+];
+
+// Inject floatingPopup if not already present
 if (!document.getElementById("intention-popup-script")) {
   const script = document.createElement("script");
   script.src = chrome.runtime.getURL("floatingPopup.js");
@@ -8,49 +17,171 @@ if (!document.getElementById("intention-popup-script")) {
   script.type = "module";
   document.body.appendChild(script);
 }
+
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
-// Messaging bridge between injected popup and chrome extension APIs
+let isBlurEnabled = true;
+
 window.addEventListener("message", (event) => {
-  // Only accept messages from the same window
   if (event.source !== window) return;
 
+  // Save intention (sent from popup to content)
   if (event.data.type === "SAVE_INTENTION") {
     const intention = event.data.payload;
-
-    // Send it to React app via event
-    const customEvent = new CustomEvent("intention-saved", {
-      detail: intention,
-    });
-    window.dispatchEvent(customEvent); // dispatching the event bact to react.
+    const customEvent = new CustomEvent("intention-saved", { detail: intention });
+    window.dispatchEvent(customEvent);
   }
 
-  /// Function to handle the timer.
+  // Start timer and dispatch event when finished
   if (event.data.type === "START_FOCUS_TIMER") {
     const durationInMinutes = event.data.payload;
 
-    if (focusTimer) {
-      clearTimeout(focusTimer);
-    }
+    if (focusTimer) clearTimeout(focusTimer);
 
     console.log(`Starting focus timer for ${durationInMinutes} minutes.`);
-    /// Sets the things to happen after the timeout.
     focusTimer = setTimeout(() => {
       console.log("Focus timer ended. Dispatching SHOW_POPUP event.");
-
-      const event = new CustomEvent("show-popup-again");
-      window.dispatchEvent(event); 
+      window.dispatchEvent(new CustomEvent("show-popup-again"));
     }, durationInMinutes * 60 * 1000);
   }
 });
-
-// Hiding distractions
-const selectorsToHide = [
-  "#comments",
-  ".sidebar",
-  "ytd-watch-next-secondary-results-renderer",
-];
 
 for (const selector of selectorsToHide) {
   const el = document.querySelector(selector);
   if (el) el.remove();
 }
+const applyBlurToSections = () => {
+  const sections = document.querySelectorAll("ytd-guide-section-renderer");
+  sections.forEach((section, index) => {
+    if ([1, 2, 3].includes(index)) {
+      const el = section as HTMLElement;
+      el.style.filter = "blur(6px)";
+      el.style.pointerEvents = "none";
+      el.style.userSelect = "none";
+    }
+  });
+};
+
+const blurChipsBar = () => {
+  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
+  if (chips) {
+    const height = chips.offsetHeight;
+
+    chips.style.filter = "blur(6px)";
+    chips.style.pointerEvents = "none";
+    chips.style.userSelect = "none";
+    chips.style.height = `${height}px`;
+    chips.style.position = "relative";
+    chips.style.overflow = "hidden";
+    chips.style.display = "block";
+    chips.style.boxSizing = "border-box";
+  }
+};
+
+const removeBlur = () => {
+  document.querySelectorAll("ytd-guide-section-renderer").forEach((el) => {
+    const elem = el as HTMLElement;
+    elem.style.filter = "";
+    elem.style.pointerEvents = "";
+    elem.style.userSelect = "";
+  });
+
+  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
+  if (chips) {
+    chips.style.filter = "";
+    chips.style.pointerEvents = "";
+    chips.style.userSelect = "";
+    chips.style.height = "";
+    chips.style.position = "";
+    chips.style.overflow = "";
+    chips.style.display = "";
+    chips.style.boxSizing = "";
+  }
+};
+
+const applyBlurImmediately = () => {
+  applyBlurToSections();
+  blurChipsBar();
+};
+
+
+const sidebarObserver = new MutationObserver(() => {
+  if (isBlurEnabled) applyBlurToSections();
+});
+const chipsObserver = new MutationObserver(() => {
+  if (isBlurEnabled) blurChipsBar();
+});
+
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const { type, payload } = message;
+
+  if (type === "TOGGLE_BLUR") {
+    isBlurEnabled = payload;
+    chrome.storage.local.set({ blurEnabled: isBlurEnabled });
+
+    if (isBlurEnabled) {
+      applyBlurImmediately();
+      sidebarObserver.observe(document.body, { childList: true, subtree: true });
+      chipsObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+      removeBlur();
+      sidebarObserver.disconnect();
+      chipsObserver.disconnect();
+    }
+  }
+});
+
+chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
+  isBlurEnabled = blurEnabled;
+
+  if (isBlurEnabled) {
+    applyBlurImmediately();
+    sidebarObserver.observe(document.body, { childList: true, subtree: true });
+    chipsObserver.observe(document.body, { childList: true, subtree: true });
+  }
+});
+
+// Blur comments
+function applyCommentBlur() {
+  if (document.getElementById(COMMENT_BLUR_ID)) return;
+  const style = document.createElement('style');
+  style.id = COMMENT_BLUR_ID;
+  style.textContent = selectorsToHide
+    .map(sel => `
+      ${sel} {
+        filter: blur(6px) !important;
+        pointer-events: none !important;
+        user-select: none !important;
+      }
+    `)
+    .join('\n');
+  document.head.appendChild(style);
+}
+
+function removeCommentBlur() {
+  const style = document.getElementById(COMMENT_BLUR_ID);
+  if (style) style.remove();
+}
+
+// on page load, read storage and blur if needed
+const commentsObserver = new MutationObserver(() => {
+  chrome.storage.local.get('commentsHidden', ({ commentsHidden }) => {
+    if (commentsHidden) applyCommentBlur();
+  });
+});
+commentsObserver.observe(document.body, { childList: true, subtree: true });
+
+// listen for your popup toggle
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.action === 'toggleComments') {
+    chrome.storage.local.get({ commentsHidden: false }, ({ commentsHidden }) => {
+      const nowHidden = !commentsHidden;
+      if (nowHidden) applyCommentBlur();
+      else removeCommentBlur();
+      chrome.storage.local.set({ commentsHidden: nowHidden }, () => {
+        sendResponse({ status: nowHidden ? 'hidden' : 'shown' });
+      });
+    });
+    return true;
+  }
+});

@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { IntentionProvider } from "./context/intentionPopupContext";
 import { useIntention } from "./context/intentionPopupContext";
-import "./styles/intentionPopupStyle.css";
-import {translations} from "./utils/popupContents"
+import "./styles/intentionPopup.css";
 
 const containerId = "focus-popup-container";
 const IntentionPopup = () => {
