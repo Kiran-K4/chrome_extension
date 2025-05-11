@@ -8,7 +8,7 @@ const containerId = "focus-popup-container";
 const IntentionPopup = () => {
   const { intention, setIntention, isIntentionSet } = useIntention();
   const [visible, setVisible] = useState(true);
-  const [duration, setDuration] = useState("");
+  const {timer, setTimer} = useIntention();
   const [showWarning, setShowWarning] = useState(false);
   const [proceedDisabled, setProceedDisabled] = useState(true);
 
@@ -32,15 +32,15 @@ const IntentionPopup = () => {
   useEffect(() => {
     const trimmedIntention = intention.trim();
     const isShortIntention = trimmedIntention.length < 5;
-    const isLongDuration = ["10", "15", "30"].includes(duration);
+    const isLongDuration = ["10", "15", "30"].includes(timer.toString())
     const needsDetailedIntention =
       isLongDuration && trimmedIntention.length < 15;
 
     const shouldDisable =
-      !duration || isShortIntention || needsDetailedIntention;
+      !timer || isShortIntention || needsDetailedIntention;
 
     setProceedDisabled(shouldDisable);
-  }, [intention, duration]);
+  }, [intention, timer]);
 
   // Get initial intention
   useEffect(() => {
@@ -51,12 +51,19 @@ const IntentionPopup = () => {
   }, []);
 
   /// to handle the intention save fucntionality
-  const handleSave = () => {
+  const handleSave = () => {const focusDuration = timer;
+    const focusStart = Date.now();
+  
+    chrome.storage.local.set({
+      focusStart,
+      focusDuration,
+      focusIntention: intention,
+    });
     sessionStorage.setItem("intention", intention); // Save temporarily
-    sessionStorage.setItem("focusDuration", duration);
+    sessionStorage.setItem("focusDuration", timer.toString());
     window.postMessage({ type: "SAVE_INTENTION", payload: intention }, "*");
     window.postMessage(
-      { type: "START_FOCUS_TIMER", payload: parseInt(duration, 10) },
+      { type: "START_FOCUS_TIMER", payload: timer },
       "*"
     );
     setVisible(false); /// sets popup visibility.
@@ -65,19 +72,19 @@ const IntentionPopup = () => {
   /// to handle the intention change.
   const handleIntentionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setIntention(e.target.value);
-    validateIntentionLength(duration); /// validation to check the lenght of intention based on timer.
+    validateIntentionLength(timer); /// validation to check the lenght of intention based on timer.
   };
 
   /// to handle the timer change.
   const handleDurationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = e.target.value;
-    setDuration(selected);
-    validateIntentionLength(selected); /// validation to check the lenght of intention based on timer.
+    setTimer(parseInt(selected, 10));
+    validateIntentionLength(parseInt(selected, 10)); /// validation to check the lenght of intention based on timer.
   };
 
   // Validate if intention is short for long durations
-  const validateIntentionLength = (selectedDuration: string) => {
-    const minutes = parseInt(selectedDuration, 10);
+  const validateIntentionLength = (selectedDuration: number) => {
+    const minutes = selectedDuration;
     if (
       (minutes === 10 || minutes === 15 || minutes === 30) &&
       intention.trim().length < 15
@@ -113,7 +120,7 @@ const IntentionPopup = () => {
           Please select how long you intend to stay on this site.
         </p>
         <select
-          value={duration}
+          value={timer}
           onChange={handleDurationChange}
           style={inputStyle}
         >
