@@ -2,9 +2,46 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { IntentionProvider } from './context/intentionPopupContext';
 
+const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      backgroundColor: checked ? '#4CAF50' : '#ccc',
+      borderRadius: '20px',
+      padding: '2px 8px',
+      width: '55px',
+      height: '24px',
+      position: 'relative',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s'
+    }} onClick={onChange}>
+      <span style={{
+        color: 'white',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        marginRight: 'auto'
+      }}>
+        {checked ? 'ON' : 'OFF'}
+      </span>
+      <div style={{
+        width: '20px',
+        height: '20px',
+        backgroundColor: 'white',
+        borderRadius: '50%',
+        position: 'absolute',
+        right: checked ? '2px' : 'auto',
+        left: checked ? 'auto' : '2px',
+        transition: '0.3s'
+      }} />
+    </div>
+  );
+};
+
 const App = () => {
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
+  const [isHomePageBlurEnabled, setIsHomePageBlurEnabled] = useState(true);
 
   useEffect(() => {
     chrome.storage.local.get('blurEnabled', ({ blurEnabled }) => {
@@ -13,9 +50,11 @@ const App = () => {
     chrome.storage.local.get('commentsHidden', ({ commentsHidden }) => {
       setHidden(commentsHidden === true);
     });
+    chrome.storage.local.get({ homePageBlurEnabled: true }, ({ homePageBlurEnabled }) => {
+      setIsHomePageBlurEnabled(homePageBlurEnabled);
+    });
   }, []);
 
-  // Blur sidebar and chips
   const handleBlurToggle = async () => {
     const newValue = !blurEnabled;
     setBlurEnabled(newValue);
@@ -24,13 +63,12 @@ const App = () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
-        type: 'TOGGLE_BLUR',
+        type: 'TOGGLE_DISTRACTIONS_BLUR',
         payload: newValue,
       });
     }
   };
 
-  // Blur comments
   const handleCommentsToggle = async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
@@ -46,20 +84,93 @@ const App = () => {
     );
   };
 
-  return (
-    <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: 20, marginBottom: 12 }}>Focus Bear</h1>
+  const handleHomePageBlurToggle = () => {
+    const newState = !isHomePageBlurEnabled;
+    setIsHomePageBlurEnabled(newState);
 
-      <div style={{ marginBottom: 16 }}>
-        <button onClick={handleBlurToggle}>
-          {blurEnabled ? 'Show sidebar/chips' : 'Blur sidebar/chips'}
-        </button>
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const activeTab = tabs[0];
+      if (activeTab.id) {
+        chrome.tabs.sendMessage(activeTab.id, {
+          type: "TOGGLE_HOME_PAGE_BLUR",
+          payload: newState
+        });
+      }
+    });
+
+    chrome.storage.local.set({ homePageBlurEnabled: newState });
+  };
+
+  return (
+    <div style={{
+      padding: 16,
+      fontFamily: 'sans-serif',
+      backgroundColor: '#FFC88B',
+      borderRadius: 16,
+      minWidth: 300,
+      minHeight: 200,
+      margin: 0,
+      boxSizing: 'border-box',
+      overflow: 'hidden',
+      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+    }}>
+      {/* ✅ Updated heading with icon and text */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 16,
+        justifyContent: 'center'
+      }}>
+        <img 
+          src="/icons/icon128.png" 
+          alt="Bear Icon" 
+          style={{ 
+            width: 32, 
+            height: 32,
+            objectFit: 'contain',
+            display: 'block'
+          }} 
+        />
+        <h1 style={{ fontSize: 20, margin: 0 }}>YouTube</h1>
       </div>
 
-      <div>
-        <button onClick={handleCommentsToggle}>
-          {hidden ? 'Show comments' : 'Blur comments'}
-        </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <label style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          cursor: 'pointer',
+          flexDirection: 'row-reverse',
+          justifyContent: 'flex-end'
+        }}>
+          <span style={{ fontSize: '16px' }}>Blur Home Page</span>
+          <Toggle checked={isHomePageBlurEnabled} onChange={handleHomePageBlurToggle} />
+        </label>
+
+        <label style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          cursor: 'pointer',
+          flexDirection: 'row-reverse',
+          justifyContent: 'flex-end'
+        }}>
+          <span style={{ fontSize: '16px' }}>Blur Distractions</span>
+          <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
+        </label>
+
+        <label style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          cursor: 'pointer',
+          flexDirection: 'row-reverse',
+          justifyContent: 'flex-end'
+        }}>
+          <span style={{ fontSize: '16px' }}>Hide Comments</span>
+          <Toggle checked={hidden} onChange={handleCommentsToggle} />
+        </label>
       </div>
     </div>
   );

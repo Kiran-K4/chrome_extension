@@ -1,6 +1,6 @@
 console.log("Content script injected");
 
-const COMMENT_BLUR_ID = 'focus-bear-comment-blur-style';
+const STYLE_ID = 'focus-bear-hide-comments-style';
 const selectorsToHide = [
   '#comments',
   'ytd-item-section-renderer[static-comments-header]',
@@ -20,6 +20,7 @@ if (!document.getElementById("intention-popup-script")) {
 
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let isBlurEnabled = true;
+let isHomePageBlurEnabled = true;
 
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
@@ -77,6 +78,42 @@ const blurChipsBar = () => {
   }
 };
 
+const blurHomePage = () => {
+  // Target only the video grid content specifically
+  const mainContent = document.querySelector('ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer') as HTMLElement | null;
+  const primaryContent = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
+  
+  if (mainContent && primaryContent) {
+    // Create a stacking context for the video grid
+    primaryContent.style.position = 'relative';
+    primaryContent.style.zIndex = '0';
+    
+    // Apply blur only to the video grid
+    mainContent.style.filter = "blur(25px)";
+    mainContent.style.pointerEvents = "none";
+    mainContent.style.userSelect = "none";
+    mainContent.style.opacity = "0.8";
+    // Ensure blur starts after the chips bar
+    mainContent.style.marginTop = "10px";
+  }
+};
+
+const removeHomePageBlur = () => {
+  const mainContent = document.querySelector('ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer') as HTMLElement | null;
+  const primaryContent = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
+  
+  if (mainContent && primaryContent) {
+    mainContent.style.filter = "";
+    mainContent.style.pointerEvents = "";
+    mainContent.style.userSelect = "";
+    mainContent.style.opacity = "";
+    mainContent.style.marginTop = "";
+    
+    primaryContent.style.position = "";
+    primaryContent.style.zIndex = "";
+  }
+};
+
 const removeBlur = () => {
   document.querySelectorAll("ytd-guide-section-renderer").forEach((el) => {
     const elem = el as HTMLElement;
@@ -103,7 +140,6 @@ const applyBlurImmediately = () => {
   blurChipsBar();
 };
 
-
 const sidebarObserver = new MutationObserver(() => {
   if (isBlurEnabled) applyBlurToSections();
 });
@@ -111,6 +147,14 @@ const chipsObserver = new MutationObserver(() => {
   if (isBlurEnabled) blurChipsBar();
 });
 
+const homePageObserver = new MutationObserver(() => {
+  if (isHomePageBlurEnabled) {
+    const mainContent = document.querySelector('ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer');
+    if (mainContent) {
+      blurHomePage();
+    }
+  }
+});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { type, payload } = message;
@@ -141,32 +185,27 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   }
 });
 
-// Blur comments
-function applyCommentBlur() {
-  if (document.getElementById(COMMENT_BLUR_ID)) return;
+// Hide everything matching our selectors
+function applyHide() {
+  if (document.getElementById(STYLE_ID)) return;
   const style = document.createElement('style');
-  style.id = COMMENT_BLUR_ID;
+  style.id = STYLE_ID;
   style.textContent = selectorsToHide
-    .map(sel => `
-      ${sel} {
-        filter: blur(6px) !important;
-        pointer-events: none !important;
-        user-select: none !important;
-      }
-    `)
+    .map(sel => `${sel} { display: none !important; }`)
     .join('\n');
   document.head.appendChild(style);
 }
 
-function removeCommentBlur() {
-  const style = document.getElementById(COMMENT_BLUR_ID);
+// remove that <style>, showing them again
+function applyShow() {
+  const style = document.getElementById(STYLE_ID);
   if (style) style.remove();
 }
 
-// on page load, read storage and blur if needed
+// on page load, read storage and hide if needed
 const commentsObserver = new MutationObserver(() => {
   chrome.storage.local.get('commentsHidden', ({ commentsHidden }) => {
-    if (commentsHidden) applyCommentBlur();
+    if (commentsHidden) applyHide();
   });
 });
 commentsObserver.observe(document.body, { childList: true, subtree: true });
@@ -174,10 +213,12 @@ commentsObserver.observe(document.body, { childList: true, subtree: true });
 // listen for your popup toggle
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.action === 'toggleComments') {
+    // read current
     chrome.storage.local.get({ commentsHidden: false }, ({ commentsHidden }) => {
       const nowHidden = !commentsHidden;
-      if (nowHidden) applyCommentBlur();
-      else removeCommentBlur();
+      if (nowHidden) applyHide();
+      else applyShow();
+      // save and reply
       chrome.storage.local.set({ commentsHidden: nowHidden }, () => {
         sendResponse({ status: nowHidden ? 'hidden' : 'shown' });
       });
