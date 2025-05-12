@@ -79,9 +79,9 @@ const blurChipsBar = () => {
 };
 
 const blurHomePage = () => {
-  // Target only the video grid content specifically
-  const mainContent = document.querySelector('ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer') as HTMLElement | null;
-  const primaryContent = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
+  // Target the video grid content with multiple possible selectors
+  const mainContent = document.querySelector('ytd-rich-grid-renderer #contents, #primary ytd-rich-grid-renderer #contents') as HTMLElement | null;
+  const primaryContent = document.querySelector('ytd-rich-grid-renderer, #primary ytd-rich-grid-renderer') as HTMLElement | null;
   
   if (mainContent && primaryContent) {
     // Create a stacking context for the video grid
@@ -93,14 +93,13 @@ const blurHomePage = () => {
     mainContent.style.pointerEvents = "none";
     mainContent.style.userSelect = "none";
     mainContent.style.opacity = "0.8";
-    // Ensure blur starts after the chips bar
     mainContent.style.marginTop = "10px";
   }
 };
 
 const removeHomePageBlur = () => {
-  const mainContent = document.querySelector('ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer') as HTMLElement | null;
-  const primaryContent = document.querySelector('ytd-rich-grid-renderer') as HTMLElement | null;
+  const mainContent = document.querySelector('ytd-rich-grid-renderer #contents, #primary ytd-rich-grid-renderer #contents') as HTMLElement | null;
+  const primaryContent = document.querySelector('ytd-rich-grid-renderer, #primary ytd-rich-grid-renderer') as HTMLElement | null;
   
   if (mainContent && primaryContent) {
     mainContent.style.filter = "";
@@ -156,6 +155,7 @@ const homePageObserver = new MutationObserver(() => {
   }
 });
 
+// Add message handler for home page blur toggle
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const { type, payload } = message;
 
@@ -173,15 +173,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       chipsObserver.disconnect();
     }
   }
+
+  // Add new handler for home page blur
+  if (type === "TOGGLE_HOME_PAGE_BLUR") {
+    isHomePageBlurEnabled = payload;
+    chrome.storage.local.set({ homePageBlurEnabled: isHomePageBlurEnabled });
+
+    if (isHomePageBlurEnabled) {
+      blurHomePage();
+      homePageObserver.observe(document.body, { childList: true, subtree: true });
+    } else {
+      removeHomePageBlur();
+      homePageObserver.disconnect();
+    }
+  }
 });
 
-chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
+// Update the storage getter to include home page blur
+chrome.storage.local.get({ 
+  blurEnabled: true,
+  homePageBlurEnabled: true 
+}, ({ blurEnabled, homePageBlurEnabled }) => {
   isBlurEnabled = blurEnabled;
+  isHomePageBlurEnabled = homePageBlurEnabled;
 
   if (isBlurEnabled) {
     applyBlurImmediately();
     sidebarObserver.observe(document.body, { childList: true, subtree: true });
     chipsObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // Initialize home page blur if enabled
+  if (homePageBlurEnabled) {
+    blurHomePage();
+    homePageObserver.observe(document.body, { childList: true, subtree: true });
   }
 });
 
