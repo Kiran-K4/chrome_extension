@@ -27,7 +27,7 @@ window.addEventListener("message", (event) => {
 
   // Save intention (sent from popup to content)
   if (event.data.type === "SAVE_INTENTION") {
-    const intention = event.data.payload;
+    const intention = event.data.payload; 
     const customEvent = new CustomEvent("intention-saved", { detail: intention });
     window.dispatchEvent(customEvent);
   }
