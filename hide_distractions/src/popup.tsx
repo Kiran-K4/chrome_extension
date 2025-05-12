@@ -46,6 +46,7 @@ const App = () => {
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
+  const [isHomePageBlurEnabled, setIsHomePageBlurEnabled] = useState(true);
 
   useEffect(() => {
     chrome.storage.local.get('blurEnabled', ({ blurEnabled }) => {
@@ -53,6 +54,9 @@ const App = () => {
     });
     chrome.storage.local.get('commentsHidden', ({ commentsHidden }) => {
       setHidden(commentsHidden === true);
+    });
+    chrome.storage.local.get({ homePageBlurEnabled: true }, ({ homePageBlurEnabled }) => {
+      setIsHomePageBlurEnabled(homePageBlurEnabled);
     });
   }, []);
 
@@ -89,6 +93,22 @@ const App = () => {
     const newValue = !homeBlurEnabled;
     setHomeBlurEnabled(newValue);
     // You'll need to implement the storage and messaging logic for this feature
+  };
+
+  const handleHomePageBlurToggle = () => {
+    const newState = !isHomePageBlurEnabled;
+    setIsHomePageBlurEnabled(newState);
+    
+    // Send message to content script
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const activeTab = tabs[0];
+      if (activeTab.id) {
+        chrome.tabs.sendMessage(activeTab.id, {
+          type: "TOGGLE_HOME_PAGE_BLUR",
+          payload: newState
+        });
+      }
+    });
   };
 
   return (
@@ -139,7 +159,7 @@ const App = () => {
           justifyContent: 'flex-end'
         }}>
           <span style={{ fontSize: '16px' }}>Blur Home Page</span>
-          <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
+          <Toggle checked={isHomePageBlurEnabled} onChange={handleHomePageBlurToggle} />
         </label>
 
         <label style={{
