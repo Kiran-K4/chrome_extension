@@ -17,7 +17,8 @@ export default defineConfig({
         floatingPopup: resolve(__dirname, 'src/intentionPopup.tsx'),
         popup: resolve(__dirname, 'src/popup.html'),
         background: resolve(__dirname, 'src/background.ts'),
-        content: resolve(__dirname, 'src/content.ts')
+        content: resolve(__dirname, 'src/content.ts'),
+        homePageBlur: resolve(__dirname, 'src/homePageBlur.ts')
       },
       output: {
         entryFileNames: '[name].js'
