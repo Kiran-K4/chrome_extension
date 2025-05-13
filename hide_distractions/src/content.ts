@@ -32,7 +32,7 @@ window.addEventListener("message", (event) => {
   }
 
   // Start timer and dispatch event when finished
-  if (event.data.type === "START_FOCUS_TIMER") {
+  if (event.data.type === "START_FOCUS_DATA") {
     const durationInMinutes = event.data.payload;
 
     if (focusTimer) clearTimeout(focusTimer);
