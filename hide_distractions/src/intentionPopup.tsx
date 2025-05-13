@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { IntentionProvider } from "./context/intentionPopupContext";
 import { useIntention } from "./context/intentionPopupContext";
 import "./styles/intentionPopup.css";
+import iconUrl from '../public/icons/icon128.png';
 
 const containerId = "focus-popup-container";
 const IntentionPopup = () => {
@@ -91,12 +92,19 @@ const IntentionPopup = () => {
 
   return (
     <div id="focus-popup"style={overlayStyle}>
-  <div style={popupBoxStyle}>
-        <h2 style={{ marginBottom: "18px", color: "#f58a07" }}>
-          You are currretly accessing distraction site.
-        </h2>
+      <div style={popupBoxStyle}>
+        <div style={headerStyle}>
+          <img 
+            src={iconUrl}
+            alt="Focus Mode Icon"
+            style={iconStyle}
+          />
+          <h2 style={{ marginBottom: "18px", color: "#f58a07", textAlign: "center" }}>
+            Hello there? Up to mischief are we?
+          </h2>
+        </div>
         <p style={{ fontSize: "14px" }}>
-          Can you share your intention to visit this site?
+          What plans are brewing or should I say bearing?
         </p>
         <textarea
           value={intention}
@@ -105,12 +113,12 @@ const IntentionPopup = () => {
           style={inputStyle}
         />
         {showWarning && (
-          <p style={{ color: "red", fontSize: "12px", marginBottom: "10px" }}>
-            Please provide a more detailed explanation (at least 15 characters).
+          <p className="focus-warning">
+            Wow that's a while! I think a more thoughtful reason would help keep our focus! (15+ characters).
           </p>
         )}
         <p style={{ fontSize: "14px" }}>
-          Please select how long you intend to stay on this site.
+          How long should we watch together for?
         </p>
         <select
           value={duration}
@@ -154,7 +162,6 @@ if (!document.getElementById(containerId)) {
     </IntentionProvider>
   );
 }
-
 const overlayStyle: React.CSSProperties = {
   position: "fixed",
   top: 0,
@@ -199,3 +206,17 @@ const buttonStyle: React.CSSProperties = {
   borderRadius: "6px",
   flex: 1,
 };
+
+const headerStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "15px",
+  marginBottom: "10px",
+};
+
+const iconStyle: React.CSSProperties = {
+  width: "32px",
+  height: "32px",
+  objectFit: "contain",
+};
+
