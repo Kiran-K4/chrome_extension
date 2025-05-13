@@ -1,14 +1,12 @@
-/// Context to handle the intention popup.
 import {
   createContext,
   useContext,
   useEffect,
   useState,
-  ReactNode,
   useRef,
+  ReactNode,
 } from "react";
 
-/// inteface to store the intention details.
 interface IntentionContextProps {
   intention: string;
   setIntention: (value: string) => void;
@@ -16,14 +14,13 @@ interface IntentionContextProps {
   timer: number;
   setTimer: (minutes: number) => void;
   timeLeft: number;
-  startFocusTimer: (minutes: number) => void;
-  stopFocusTimer: () => void;
+  setTimeLeft: (seconds: number) => void;
   timerActive: boolean;
   setTimerActive: (active: boolean) => void;
-  setTimeLeft: (seconds: number) => void;
+  startFocusTimer: (minutes: number) => void;
+  stopFocusTimer: () => void;
 }
 
-/// instance creation for the context of intention popup
 const IntentionContext = createContext<IntentionContextProps>({
   intention: "",
   setIntention: () => {},
@@ -31,53 +28,44 @@ const IntentionContext = createContext<IntentionContextProps>({
   timer: 0,
   setTimer: () => {},
   timeLeft: 0,
-  startFocusTimer: () => {},
-  stopFocusTimer: () => {},
+  setTimeLeft: () => {},
   timerActive: false,
   setTimerActive: () => {},
-  setTimeLeft: () => {},
+  startFocusTimer: () => {},
+  stopFocusTimer: () => {},
 });
 
-/// function of the intetion popup
 export const IntentionProvider = ({ children }: { children: ReactNode }) => {
   const [intention, setIntention] = useState("");
-  const [isIntentionSet, setisIntentionSet] = useState(false);
+  const [isIntentionSet, setIsIntentionSet] = useState(false);
   const [timer, setTimer] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0); // remaining time (in seconds)
+  const [timeLeft, setTimeLeft] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  /// use effect to get the previoiusly stored intention when popup loaded
   useEffect(() => {
     const saved = sessionStorage.getItem("intention");
     if (saved) {
       setIntention(saved);
-      setisIntentionSet(saved.trim().length > 0);
+      setIsIntentionSet(saved.trim().length > 0);
     }
 
-    /// use effect to handle the intention changes.
     const handleIntentionEvent = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      const newIntention = customEvent.detail;
-
-      console.log("Context received intention from content:", newIntention);
-      sessionStorage.setItem("intention", newIntention);
-      setIntention(newIntention);
-      setisIntentionSet(newIntention.trim().length > 0);
+      const { detail } = e as CustomEvent;
+      sessionStorage.setItem("intention", detail);
+      setIntention(detail);
+      setIsIntentionSet(detail.trim().length > 0);
     };
-    window.addEventListener("intention-saved", handleIntentionEvent);
 
+    window.addEventListener("intention-saved", handleIntentionEvent);
     return () => {
       window.removeEventListener("intention-saved", handleIntentionEvent);
     };
   }, []);
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const updateTimer = (minutes: number) => {
-    setTimer(minutes);
-    setTimeLeft(minutes * 60);
-  };
   const startFocusTimer = (minutes: number) => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
     const totalSeconds = minutes * 60;
     setTimer(minutes);
     setTimeLeft(totalSeconds);
@@ -89,11 +77,11 @@ export const IntentionProvider = ({ children }: { children: ReactNode }) => {
       focusIntention: intention,
     });
 
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(interval);
+          clearInterval(intervalRef.current!);
+          intervalRef.current = null;
           setTimerActive(false);
           chrome.storage.local.remove([
             "focusStart",
@@ -106,37 +94,34 @@ export const IntentionProvider = ({ children }: { children: ReactNode }) => {
         return prev - 1;
       });
     }, 1000);
-
-    intervalRef.current = interval;
   };
 
   const stopFocusTimer = () => {
-    setTimerActive(false);
-    setTimeLeft(0);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
+    setTimerActive(false);
+    setTimeLeft(0);
   };
 
-  /// to set the new intetnion.
   return (
     <IntentionContext.Provider
       value={{
         intention,
         setIntention: (val: string) => {
           setIntention(val);
-          setisIntentionSet(val.trim().length > 0);
+          setIsIntentionSet(val.trim().length > 0);
         },
-        timer,
-        setTimer: updateTimer,
         isIntentionSet,
+        timer,
+        setTimer,
         timeLeft,
-        startFocusTimer,
-        stopFocusTimer,
+        setTimeLeft,
         timerActive,
         setTimerActive,
-        setTimeLeft,
+        startFocusTimer,
+        stopFocusTimer,
       }}
     >
       {children}

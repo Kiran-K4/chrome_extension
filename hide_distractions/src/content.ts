@@ -131,6 +131,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+window.addEventListener("message", (event) => {
+  if (event.source !== window) return;
+
+  if (event.data.type === "SAVE_INTENTION") {
+    const intention = event.data.payload;
+    const customEvent = new CustomEvent("intention-saved", { detail: intention });
+    window.dispatchEvent(customEvent);
+  }
+
+  if (event.data.type === "START_FOCUS_TIMER") {
+    const durationInMinutes = event.data.payload;
+
+    if (focusTimer) clearTimeout(focusTimer);
+
+    console.log(`Starting focus timer for ${durationInMinutes} minutes.`);
+    focusTimer = setTimeout(() => {
+      console.log("Focus timer ended. Dispatching SHOW_POPUP event.");
+      window.dispatchEvent(new CustomEvent("show-popup-again"));
+    }, durationInMinutes * 60 * 1000);
+  }
+
+  // NEW: Save focus data to chrome.storage.local
+  if (event.data.type === "STORE_FOCUS_DATA") {
+    const { focusStart, focusDuration, focusIntention } = event.data.payload;
+    chrome.storage.local.set(
+      { focusStart, focusDuration, focusIntention },
+      () => console.log(" Stored focus session in chrome.storage.local")
+    );
+  }
+});
+
+
 chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   isBlurEnabled = blurEnabled;
 
@@ -183,5 +215,18 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       });
     });
     return true;
+  }
+});
+
+window.addEventListener("show-popup-again", () => {
+  console.log("⏰ Focus time ended – triggering popup re-injection");
+
+  // Only inject if it's not already present
+  if (!document.getElementById("intention-popup-script")) {
+    const script = document.createElement("script");
+    script.src = chrome.runtime.getURL("floatingPopup.js");
+    script.id = "intention-popup-script";
+    script.type = "module";
+    document.body.appendChild(script);
   }
 });

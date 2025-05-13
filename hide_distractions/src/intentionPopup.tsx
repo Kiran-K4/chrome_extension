@@ -8,7 +8,7 @@ const containerId = "focus-popup-container";
 const IntentionPopup = () => {
   const { intention, setIntention, isIntentionSet } = useIntention();
   const [visible, setVisible] = useState(true);
-  const {timer, setTimer} = useIntention();
+  const { timer, setTimer } = useIntention();
   const [showWarning, setShowWarning] = useState(false);
   const [proceedDisabled, setProceedDisabled] = useState(true);
 
@@ -32,12 +32,11 @@ const IntentionPopup = () => {
   useEffect(() => {
     const trimmedIntention = intention.trim();
     const isShortIntention = trimmedIntention.length < 5;
-    const isLongDuration = ["10", "15", "30"].includes(timer.toString())
+    const isLongDuration = ["10", "15", "30"].includes(timer.toString());
     const needsDetailedIntention =
       isLongDuration && trimmedIntention.length < 15;
 
-    const shouldDisable =
-      !timer || isShortIntention || needsDetailedIntention;
+    const shouldDisable = !timer || isShortIntention || needsDetailedIntention;
 
     setProceedDisabled(shouldDisable);
   }, [intention, timer]);
@@ -51,21 +50,26 @@ const IntentionPopup = () => {
   }, []);
 
   /// to handle the intention save fucntionality
-  const handleSave = () => {const focusDuration = timer;
+  const handleSave = () => {
+    const focusDuration = timer;
     const focusStart = Date.now();
-  
-    chrome.storage.local.set({
-      focusStart,
-      focusDuration,
-      focusIntention: intention,
-    });
-    sessionStorage.setItem("intention", intention); // Save temporarily
-    sessionStorage.setItem("focusDuration", timer.toString());
-    window.postMessage({ type: "SAVE_INTENTION", payload: intention }, "*");
+
+    // Send to content script to store in chrome.storage.local
     window.postMessage(
-      { type: "START_FOCUS_TIMER", payload: timer },
+      {
+        type: "STORE_FOCUS_DATA",
+        payload: {
+          focusStart,
+          focusDuration,
+          focusIntention: intention,
+        },
+      },
       "*"
     );
+
+    // Optional: update local sessionStorage if needed internally
+    sessionStorage.setItem("intention", intention);
+    sessionStorage.setItem("focusDuration", timer.toString());
     setVisible(false); /// sets popup visibility.
   };
 
@@ -97,8 +101,8 @@ const IntentionPopup = () => {
   if (!visible) return null;
 
   return (
-    <div id="focus-popup"style={overlayStyle}>
-  <div style={popupBoxStyle}>
+    <div id="focus-popup" style={overlayStyle}>
+      <div style={popupBoxStyle}>
         <h2 style={{ marginBottom: "18px", color: "#f58a07" }}>
           You are currretly accessing distraction site.
         </h2>
