@@ -66,6 +66,11 @@ const IntentionPopup = () => {
       },
       "*"
     );
+    window.postMessage(
+      { type: "START_FOCUS_TIMER", payload: timer },
+      "*"
+    );
+
 
     // Optional: update local sessionStorage if needed internally
     sessionStorage.setItem("intention", intention);
