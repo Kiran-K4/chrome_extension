@@ -6,7 +6,7 @@
   "author": "Kiran Kulkarni",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && shx mkdir -p dist/assets && shx cp src/styles/intentionPopup.css dist/assets/ && shx cp public/manifest.json dist/ && cpx \"public/icons/**/*\" dist/icons && shx cp dist/src/popup.html dist/",
+    "build": "vite build && shx mkdir -p dist/assets && shx cp src/styles/* dist/assets/ && shx cp public/manifest.json dist/ && cpx \"public/icons/**/*\" dist/icons && shx cp dist/src/popup.html dist/",
     "lint": "eslint .",
     "preview": "vite preview"
   },
