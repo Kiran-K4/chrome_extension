@@ -41,7 +41,7 @@
 
 /* Heading inside popup */
 .focus-popup-box h2 {
-  font-size: 1.75rem;
+  font-size: 2rem;
   margin-bottom: 24px;
   color: #E9902C;
 }
@@ -52,13 +52,13 @@
 
 /* Paragraphs inside popup */
 .focus-popup-box p {
-  font-size: 14px;
+  font-size: 18px;
 }
 
 /* Warning text */
 .focus-warning {
   color: #F3A650;
-  font-size: 12px;
+  font-size: 16px;
   margin-bottom: 10px;
 }
 
@@ -67,7 +67,7 @@
   width: 100%;
   padding: 10px;
   margin: 10px 0;
-  font-size: 14px;
+  font-size: 18px;
   box-sizing: border-box;
 }
 
