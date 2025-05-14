@@ -17,7 +17,8 @@
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
-      "js": ["content.js", "homePageBlur.js"]
+      "js": ["content.js", "homePageBlur.js"],
+      "css": ["assets/intentionPopup.css"]
     }
   ],
   "web_accessible_resources": [
