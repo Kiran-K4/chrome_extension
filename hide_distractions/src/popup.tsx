@@ -83,11 +83,7 @@ const App = () => {
   return (
     <div className="popup-container">
       <div className="popup-header">
-        <img 
-          src="/icons/icon128.png" 
-          alt="Bear Icon" 
-          className="popup-logo"
-        />
+        <img src="/icons/bearLogo.png" alt="Bear Icon" className="popup-logo"/>
         <h1 className="popup-title">YouTube</h1>
       </div>
 
