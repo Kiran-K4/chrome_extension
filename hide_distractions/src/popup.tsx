@@ -1,29 +1,49 @@
-import React, { useState, useEffect, useRef } from "react";
-import ReactDOM from "react-dom/client";
-import {
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom/client';import {
   IntentionProvider,
   useIntention,
 } from "./context/intentionPopupContext";
 import { useFocusTimer } from "./hooks/useFocusTimer";
 
+import "./styles/popup.css";
+
+// Remove the root background color settings
+document.body.style.margin = '0';
+
+// Add custom Toggle component
+const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => {
+  return (
+    <div className={`toggle ${checked ? 'active' : 'inactive'}`} onClick={onChange}>
+      <span className="toggle-text">
+        {checked ? 'ON' : 'OFF'}
+      </span>
+      <div className="toggle-button" />
+    </div>
+  );
+};
 
 const App = () => {
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
+  const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
  
   const { intention, timeLeft, timerActive } = useFocusTimer();
 
 
   useEffect(() => {
-    chrome.storage.local.get("blurEnabled", ({ blurEnabled }) => {
-      setBlurEnabled(blurEnabled !== false);
+    chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
+      setBlurEnabled(blurEnabled);
     });
-    chrome.storage.local.get("commentsHidden", ({ commentsHidden }) => {
-      setHidden(commentsHidden === true);
+
+    chrome.storage.local.get({ commentsHidden: true }, ({ commentsHidden }) => {
+      setHidden(commentsHidden);
+    });
+
+    chrome.storage.local.get({ homePageBlurEnabled: true }, ({ homePageBlurEnabled }) => {
+      setHomeBlurEnabled(homePageBlurEnabled);
     });
   }, []);
 
-  // Blur sidebar and chips
   const handleBlurToggle = async () => {
     const newValue = !blurEnabled;
     setBlurEnabled(newValue);
@@ -41,7 +61,6 @@ const App = () => {
     }
   };
 
-  // Blur comments
   const handleCommentsToggle = async () => {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -62,20 +81,43 @@ const App = () => {
     const s = (seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
-  return (
-    <div style={{ padding: 16, fontFamily: "sans-serif" }}>
-      <h1 style={{ fontSize: 20, marginBottom: 12 }}>Focus Bear</h1>
 
-      <div style={{ marginBottom: 16 }}>
-        <button onClick={handleBlurToggle}>
-          {blurEnabled ? "Show sidebar/chips" : "Blur sidebar/chips"}
-        </button>
+  const handleHomeBlurToggle = async () => {
+    const newValue = !homeBlurEnabled;
+    setHomeBlurEnabled(newValue);
+    chrome.storage.local.set({ homePageBlurEnabled: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'TOGGLE_HOME_PAGE_BLUR',
+        payload: newValue,
+      });
+    }
+  };
+
+  return (
+    <div className="popup-container">
+      <div className="popup-header">
+        <img src="/icons/bearLogo.png" alt="Bear Icon" className="popup-logo"/>
+        <h1 className="popup-title">YouTube</h1>
       </div>
 
-      <div>
-        <button onClick={handleCommentsToggle}>
-          {hidden ? "Show comments" : "Blur comments"}
-        </button>
+      <div className="options-container">
+        <label className="option-label">
+          <span className="option-text">Blur Home Page</span>
+          <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
+        </label>
+
+        <label className="option-label">
+          <span className="option-text">Blur Distractions</span>
+          <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
+        </label>
+
+        <label className="option-label">
+          <span className="option-text">Hide Comments</span>
+          <Toggle checked={hidden} onChange={handleCommentsToggle} />
+        </label>
       </div>
 
       {timerActive ? (

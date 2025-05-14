@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { IntentionProvider } from "./context/intentionPopupContext";
 import { useIntention } from "./context/intentionPopupContext";
 import "./styles/intentionPopup.css";
+import iconUrl from '../public/icons/bearLogo.png';
 
 const containerId = "focus-popup-container";
 const IntentionPopup = () => {
@@ -106,53 +107,50 @@ const IntentionPopup = () => {
   if (!visible) return null;
 
   return (
-    <div id="focus-popup" style={overlayStyle}>
-      <div style={popupBoxStyle}>
-        <h2 style={{ marginBottom: "18px", color: "#f58a07" }}>
-          You are currretly accessing distraction site.
+    <div id="focus-popup" className="focus-popup">
+      <div className="focus-popup-box">  
+        {/* Logo */}
+        <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo"/>
+        <h2>
+          Hello there! Up to mischief are we?
         </h2>
-        <p style={{ fontSize: "14px" }}>
-          Can you share your intention to visit this site?
+        <p>
+          What plans are brewing or should I say bearing?
         </p>
         <textarea
           value={intention}
           onChange={handleIntentionChange}
-          placeholder="Type your reason here..."
-          style={inputStyle}
+          placeholder="Type..."
+          className="focus-input"
         />
         {showWarning && (
-          <p style={{ color: "red", fontSize: "12px", marginBottom: "10px" }}>
-            Please provide a more detailed explanation (at least 15 characters).
+          <p className="focus-warning">
+            Wow that's a while! I think a more thoughtful reason would help keep our focus! (15+ characters).
           </p>
         )}
-        <p style={{ fontSize: "14px" }}>
-          Please select how long you intend to stay on this site.
+        <p>
+          How long should we watch together for?
         </p>
         <select
           value={timer}
           onChange={handleDurationChange}
-          style={inputStyle}
+          className="focus-input"
         >
-          <option value="">Select focus time (minutes)</option>
+          <option value="">Time... </option>
           <option value="1">1 minute</option>
           <option value="5">5 minutes</option>
           <option value="10">10 minutes</option>
           <option value="15">15 minutes</option>
           <option value="30">30 minutes</option>
         </select>
-
-        <div style={buttonContainerStyle}>
+  
+        <div className="focus-button-container">
           <button
-            disabled={proceedDisabled} ///enable or disable  proceeed button based on the intetnion entered.
+            disabled={proceedDisabled}
             onClick={handleSave}
-            style={{
-              ...buttonStyle,
-              backgroundColor: proceedDisabled ? "#ccc" : "#f58a07",
-              color: proceedDisabled ? "#666" : "#fff",
-              cursor: proceedDisabled ? "not-allowed" : "pointer",
-            }}
+            className="focus-button"
           >
-            Proceed.
+            Lets dig in!
           </button>
         </div>
       </div>
@@ -170,48 +168,3 @@ if (!document.getElementById(containerId)) {
     </IntentionProvider>
   );
 }
-
-const overlayStyle: React.CSSProperties = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  height: "100vh",
-  backgroundColor: "rgba(255, 255, 255, 0.85)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 9999,
-  backdropFilter: "blur(4px)",
-};
-
-const popupBoxStyle: React.CSSProperties = {
-  padding: "30px",
-  borderRadius: "12px",
-  backgroundColor: "#fff",
-  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
-  textAlign: "center",
-  maxWidth: "400px",
-  width: "100%",
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px",
-  margin: "10px",
-  fontSize: "14px",
-  boxSizing: "border-box",
-};
-
-const buttonContainerStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: "10px",
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: "10px 15px",
-  border: "none",
-  borderRadius: "6px",
-  flex: 1,
-};
