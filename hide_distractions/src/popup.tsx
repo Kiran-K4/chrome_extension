@@ -26,6 +26,7 @@ const App = () => {
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
+  const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
  
   const { intention, timeLeft, timerActive } = useFocusTimer();
 
@@ -42,7 +43,27 @@ const App = () => {
     chrome.storage.local.get({ homePageBlurEnabled: true }, ({ homePageBlurEnabled }) => {
       setHomeBlurEnabled(homePageBlurEnabled);
     });
+
+    chrome.storage.local.get({ shortsBlurEnabled: true }, ({ shortsBlurEnabled }) => {
+      setShortsBlurEnabled(shortsBlurEnabled);
+    });
+
   }, []);
+
+  const handleShortsBlurToggle = async () => {
+    const newValue = !shortsBlurEnabled;
+    setShortsBlurEnabled(newValue);
+    chrome.storage.local.set({ shortsBlurEnabled: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'TOGGLE_SHORTS_BLUR',
+        payload: newValue,
+      });
+    }
+  };
+
 
   const handleBlurToggle = async () => {
     const newValue = !blurEnabled;
@@ -118,6 +139,12 @@ const App = () => {
           <span className="option-text">Hide Comments</span>
           <Toggle checked={hidden} onChange={handleCommentsToggle} />
         </label>
+
+        <label className="option-label">
+          <span className="option-text">Blur Shorts</span>
+          <Toggle checked={shortsBlurEnabled} onChange={handleShortsBlurToggle} />
+        </label>
+
       </div>
 
       {timerActive ? (
