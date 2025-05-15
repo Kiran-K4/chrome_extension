@@ -332,7 +332,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 window.addEventListener("show-popup-again", () => {
-  console.log("⏰ Focus time ended – triggering popup re-injection");
+  console.log(" Focus time ended – triggering popup re-injection");
 
   // Only inject if it's not already present
   if (!document.getElementById("intention-popup-script")) {
