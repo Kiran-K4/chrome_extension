@@ -8,5 +8,6 @@ chrome.runtime.onInstalled.addListener(() => {
     blurEnabled: true,
     commentsHidden: true,
     homePageBlurEnabled: true,
+    shortsBlurEnabled: true
   });
 });
