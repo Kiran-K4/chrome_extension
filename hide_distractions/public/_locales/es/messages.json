@@ -1,0 +1,26 @@
+{
+  "youtube_label": {
+    "message": "YouTube"
+  },
+  "blur_home": {
+    "message": "Difuminar página principal"
+  },
+  "blur_distractions": {
+    "message": "Difuminar distracciones"
+  },
+  "hide_comments": {
+    "message": "Ocultar comentarios"
+  },
+  "blur_shorts": {
+    "message": "Difuminar Shorts"
+  },
+  "intention_label": {
+    "message": "Intención"
+  },
+  "time_left": {
+    "message": "Tiempo restante"
+  },
+  "no_focus_session": {
+    "message": "No hay una sesión de enfoque activa."
+  }
+}

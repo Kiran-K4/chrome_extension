@@ -1,0 +1,33 @@
+{
+  "youtube_label": {
+    "message": "YouTube",
+    "description": "Label for YouTube settings section"
+  },
+  "blur_home": {
+    "message": "Blur Home Page",
+    "description": "Option to blur the YouTube home page"
+  },
+  "blur_distractions": {
+    "message": "Blur Distractions",
+    "description": "Option to blur distracting elements"
+  },
+  "hide_comments": {
+    "message": "Hide Comments",
+    "description": "Option to hide YouTube comments"
+  },
+  "blur_shorts": {
+    "message": "Blur Shorts",
+    "description": "Option to blur YouTube Shorts"
+  },
+  "intention_label": {
+    "message": "Intention",
+    "description": "Label for user intention input"
+  },
+  "time_left": {
+    "message": "Time Left",
+    "description": "Label for remaining focus session time"
+  },
+  "no_focus_session": {
+  "message": "No active focus session."
+  }
+}
