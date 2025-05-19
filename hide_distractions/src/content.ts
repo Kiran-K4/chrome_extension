@@ -50,6 +50,56 @@ for (const selector of selectorsToHide) {
   if (el) el.remove();
 }
 
+const blurTopSubscriptionsMenu = () => {
+  const subLink = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
+    .find(el => el.textContent?.trim().toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (subLink) {
+    subLink.style.filter = "blur(6px)";
+    subLink.style.pointerEvents = "none";
+    subLink.style.userSelect = "none";
+    subLink.style.background = "transparent"; // Removes hover highlight
+  }
+};
+
+const unblurTopSubscriptionsMenu = () => {
+  const subLink = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
+    .find(el => el.textContent?.trim().toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (subLink) {
+    subLink.style.filter = "none";
+    subLink.style.pointerEvents = "auto";
+    subLink.style.userSelect = "auto";
+    subLink.style.background = ""; // Reset background
+  }
+};
+
+const blurLeftIconSubscriptions = () => {
+  const miniSub = Array.from(document.querySelectorAll("ytd-mini-guide-entry-renderer"))
+    .find(el => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (miniSub) {
+    miniSub.style.filter = "blur(6px)";
+    miniSub.style.pointerEvents = "none";
+    miniSub.style.userSelect = "none";
+    miniSub.style.background = "transparent";
+  } else {
+    console.log("[DEBUG] Mini Subscriptions not found");
+  }
+};
+
+const unblurLeftIconSubscriptions = () => {
+  const miniSub = Array.from(document.querySelectorAll("ytd-mini-guide-entry-renderer"))
+    .find(el => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (miniSub) {
+    miniSub.style.filter = "";
+    miniSub.style.pointerEvents = "";
+    miniSub.style.userSelect = "";
+    miniSub.style.background = "";
+  }
+};
+
 const blurShortsMenu = () => {
   const shorts = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
     .find(el => el.textContent?.trim().toLowerCase() === "shorts") as HTMLElement | undefined;
@@ -144,6 +194,8 @@ const applyBlurToSections = () => {
       el.style.userSelect = "none";
     }
   });
+  blurTopSubscriptionsMenu();
+  blurLeftIconSubscriptions(); 
 };
 
 
@@ -170,7 +222,7 @@ const removeBlur = () => {
     elem.style.pointerEvents = "";
     elem.style.userSelect = "";
   });
-
+  
   const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
   if (chips) {
     chips.style.filter = "";
@@ -182,6 +234,8 @@ const removeBlur = () => {
     chips.style.display = "";
     chips.style.boxSizing = "";
   }
+  unblurTopSubscriptionsMenu();
+  unblurLeftIconSubscriptions();
 };
 
 const applyBlurImmediately = () => {
@@ -192,8 +246,9 @@ const applyBlurImmediately = () => {
   if (isShortsPage()) {
     blurShortsPage();
   }
+  blurTopSubscriptionsMenu();
+  blurLeftIconSubscriptions();
 };
-
 
 const sidebarObserver = new MutationObserver(() => {
   if (isBlurEnabled) applyBlurToSections();
@@ -207,6 +262,24 @@ const shortsmenuObserver = new MutationObserver(() => {
     else unblurShortsMenu();
   });
 });
+const subscriptionsMenuObserver = new MutationObserver(() => {
+  if (isBlurEnabled) {
+    blurTopSubscriptionsMenu();
+  } else {
+    unblurTopSubscriptionsMenu();
+  }
+});
+
+const miniGuideObserver = new MutationObserver(() => {
+  setTimeout(() => {
+    if (isBlurEnabled) {
+      blurLeftIconSubscriptions();
+    } else {
+      unblurLeftIconSubscriptions();
+    }
+  }, 100); // ⏱ small delay ensures the DOM element is ready
+});
+
 const shortspageObserver = new MutationObserver(() => {
   chrome.storage.local.get({ shortsBlurEnabled: true }, ({ shortsBlurEnabled }) => {
     if (isShortsPage()) {
@@ -284,6 +357,9 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   shortsmenuObserver.observe(document.body, { childList: true, subtree: true });
   shortsshelfObserver.observe(document.body, { childList: true, subtree: true });
   shortspageObserver.observe(document.body, { childList: true, subtree: true });
+  subscriptionsMenuObserver.observe(document.body, { childList: true, subtree: true });
+  miniGuideObserver.observe(document.body, { childList: true, subtree: true });
+
 });
 
 // Blur comments
@@ -345,7 +421,7 @@ window.addEventListener("show-popup-again", () => {
 });
 
 window.addEventListener("show-popup-again", () => {
-  console.log("⏰ Focus time ended – triggering popup re-injection");
+  console.log("Focus time ended – triggering popup re-injection");
 
   // Only inject if it's not already present
   if (!document.getElementById("intention-popup-script")) {
