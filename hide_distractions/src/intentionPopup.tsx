@@ -3,33 +3,54 @@ import { createRoot } from "react-dom/client";
 import { IntentionProvider } from "./context/intentionPopupContext";
 import { useIntention } from "./context/intentionPopupContext";
 import "./styles/intentionPopup.css";
-import iconUrl from '../public/icons/bearLogo.png';
+import iconUrl from "../public/icons/bearLogo.png";
+
+console.log("intentionPopup.tsx loaded");
 
 const containerId = "focus-popup-container";
+
 const IntentionPopup = () => {
   const { intention, setIntention, isIntentionSet } = useIntention();
-  const [visible, setVisible] = useState(true);
   const { timer, setTimer } = useIntention();
+  const [visible, setVisible] = useState(true);
   const [showWarning, setShowWarning] = useState(false);
   const [proceedDisabled, setProceedDisabled] = useState(true);
+  const [localizedText, setLocalizedText] = useState<any | null>(null);
 
-  console.log("Current Intention:", intention);
-  console.log("Has Intention?", isIntentionSet);
+  useEffect(() => {
+  const handleMessage = (event: MessageEvent) => {
+    if (event.source !== window) return;
+    if (event.data.type === "FOCUSBEAR_TRANSLATIONS") {
+      console.log("Received translations:", event.data.payload);
+      setLocalizedText(event.data.payload);
+    }
+  };
+  window.addEventListener("message", handleMessage);
 
-  /// use effect to handle the event listeners.
+  //Request translations if not received after short delay
+  const timeout = setTimeout(() => {
+    if (!localizedText) {
+      console.log("📡 No translations received, requesting again...");
+      window.postMessage({ type: "REQUEST_TRANSLATIONS" }, "*");
+    }
+  }, 300); // Adjust delay if needed
+
+  return () => {
+    window.removeEventListener("message", handleMessage);
+    clearTimeout(timeout);
+  };
+}, []);
+
+
   useEffect(() => {
     const handler = () => {
-      console.log("Received show-popup-again event");
+      console.log("show-popup-again received");
       setVisible(true);
     };
     window.addEventListener("show-popup-again", handler);
-
-    return () => {
-      window.removeEventListener("show-popup-again", handler);
-    };
+    return () => window.removeEventListener("show-popup-again", handler);
   }, []);
 
-  /// use effect to check the proceed button validation whenever intention and timer changes.
   useEffect(() => {
     const trimmedIntention = intention.trim();
     const isShortIntention = trimmedIntention.length < 5;
@@ -38,23 +59,19 @@ const IntentionPopup = () => {
       isLongDuration && trimmedIntention.length < 15;
 
     const shouldDisable = !timer || isShortIntention || needsDetailedIntention;
-
     setProceedDisabled(shouldDisable);
   }, [intention, timer]);
 
-  // Get initial intention
   useEffect(() => {
     const saved = sessionStorage.getItem("intention");
     if (saved) {
       setIntention(saved);
     }
   }, []);
-
-  /// to handle the intention save fucntionality
+/// to handle the intention save fucntionality
   const handleSave = () => {
     const focusDuration = timer;
     const focusStart = Date.now();
-
     // Send to content script to store in chrome.storage.local
     window.postMessage(
       {
@@ -71,32 +88,31 @@ const IntentionPopup = () => {
       { type: "START_FOCUS_TIMER", payload: timer },
       "*"
     );
-
-
-    // Optional: update local sessionStorage if needed internally
+ // Optional: update local sessionStorage if needed internally
     sessionStorage.setItem("intention", intention);
     sessionStorage.setItem("focusDuration", timer.toString());
-    setVisible(false); /// sets popup visibility.
+    setVisible(false);
   };
 
-  /// to handle the intention change.
+   /// to handle the intention change.
   const handleIntentionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setIntention(e.target.value);
-    validateIntentionLength(timer); /// validation to check the lenght of intention based on timer.
+    validateIntentionLength(timer);
   };
 
-  /// to handle the timer change.
-  const handleDurationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.value;
+ /// to handle the timer change.
+ const handleDurationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {   
+ const selected = e.target.value;
     setTimer(parseInt(selected, 10));
-    validateIntentionLength(parseInt(selected, 10)); /// validation to check the lenght of intention based on timer.
+    validateIntentionLength(parseInt(selected, 10));
   };
 
-  // Validate if intention is short for long durations
   const validateIntentionLength = (selectedDuration: number) => {
     const minutes = selectedDuration;
     if (
-      (minutes === 10 || minutes === 15 || minutes === 30) &&
+      (selectedDuration === 10 ||
+        selectedDuration === 15 ||
+        selectedDuration === 30) &&
       intention.trim().length < 15
     ) {
       setShowWarning(true);
@@ -104,53 +120,48 @@ const IntentionPopup = () => {
       setShowWarning(false);
     }
   };
-  if (!visible) return null;
+
+  if (!visible || !localizedText) {
+    console.warn("Waiting for translations or popup not visible");
+    return null;
+  }
 
   return (
     <div id="focus-popup" className="focus-popup">
-      <div className="focus-popup-box">  
-        {/* Logo */}
-        <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo"/>
-        <h2>
-          Hello there! Up to mischief are we?
-        </h2>
-        <p>
-          What plans are brewing or should I say bearing?
-        </p>
+      <div className="focus-popup-box">
+        <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+        <h2>{localizedText.heading}</h2>
+        <p>{localizedText.prompt}</p>
         <textarea
           value={intention}
           onChange={handleIntentionChange}
-          placeholder="Type..."
+          placeholder={localizedText.placeholder}
           className="focus-input"
         />
         {showWarning && (
-          <p className="focus-warning">
-            Wow that's a while! I think a more thoughtful reason would help keep our focus! (15+ characters).
-          </p>
+          <p className="focus-warning">{localizedText.warning}</p>
         )}
-        <p>
-          How long should we watch together for?
-        </p>
+        <p>{localizedText.duration}</p>
         <select
           value={timer}
           onChange={handleDurationChange}
           className="focus-input"
         >
-          <option value="">Time... </option>
-          <option value="1">1 minute</option>
-          <option value="5">5 minutes</option>
-          <option value="10">10 minutes</option>
-          <option value="15">15 minutes</option>
-          <option value="30">30 minutes</option>
+          <option value="">{localizedText.time_default}</option>
+          <option value="1">{localizedText.minute_1}</option>
+          <option value="5">{localizedText.minute_5}</option>
+          <option value="10">{localizedText.minute_10}</option>
+          <option value="15">{localizedText.minute_15}</option>
+          <option value="30">{localizedText.minute_30}</option>
         </select>
-  
+
         <div className="focus-button-container">
           <button
             disabled={proceedDisabled}
             onClick={handleSave}
             className="focus-button"
           >
-            Lets dig in!
+            {localizedText.button}
           </button>
         </div>
       </div>
@@ -158,13 +169,20 @@ const IntentionPopup = () => {
   );
 };
 
+//Inject React popup
 if (!document.getElementById(containerId)) {
+  console.log("Mounting React root to container");
+
   const container = document.createElement("div");
+  container.id = containerId;
   document.body.appendChild(container);
+
   const root = createRoot(container);
   root.render(
     <IntentionProvider>
       <IntentionPopup />
     </IntentionProvider>
   );
+} else {
+  console.log("Popup already exists, skipping injection");
 }

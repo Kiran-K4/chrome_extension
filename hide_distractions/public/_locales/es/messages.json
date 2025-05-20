@@ -22,5 +22,43 @@
   },
   "no_focus_session": {
     "message": "No hay una sesión de enfoque activa."
+  },
+  
+  "heading": {
+    "message": "¡Hola! ¿Ya estás tramando travesuras?"
+  },
+  "prompt": {
+    "message": "¿Qué planes tienes o debería decir osos?"
+  },
+  "placeholder": {
+    "message": "Escribe..."
+  },
+  "warning": {
+    "message": "¡Eso es mucho tiempo! Un motivo más reflexivo ayudaría a mantener el enfoque. (15+ caracteres)."
+  },
+  "duration": {
+    "message": "¿Cuánto tiempo deberíamos mirar juntos?"
+  },
+  "button": {
+    "message": "¡Vamos allá!"
+  },
+  "time_default": {
+    "message": "Tiempo..."
+  },
+  "minute_1": {
+    "message": "1 minuto"
+  },
+  "minute_5": {
+    "message": "5 minutos"
+  },
+  "minute_10": {
+    "message": "10 minutos"
+  },
+  "minute_15": {
+    "message": "15 minutos"
+  },
+  "minute_30": {
+    "message": "30 minutos"
   }
+
 }

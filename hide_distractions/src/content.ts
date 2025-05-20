@@ -4,23 +4,57 @@ const COMMENT_BLUR_ID = 'focus-bear-comment-blur-style';
 const selectorsToHide = [
   '#comments',
   'ytd-item-section-renderer[static-comments-header]',
-  '#continuations',      
+  '#continuations',
   '.sidebar',
-  // 'ytd-watch-next-secondary-results-renderer'
 ];
 
 // Inject floatingPopup if not already present
+console.log("Injecting intention popup...");
+
 if (!document.getElementById("intention-popup-script")) {
   const script = document.createElement("script");
-  script.src = chrome.runtime.getURL("floatingPopup.js");
-  script.id = "intention-popup-script";
   script.type = "module";
+  script.id = "intention-popup-script";
+  script.src = chrome.runtime.getURL("floatingPopup.js");
   document.body.appendChild(script);
 }
 
+//Get translations
+const translations = {
+  heading: chrome.i18n.getMessage("heading"),
+  prompt: chrome.i18n.getMessage("prompt"),
+  placeholder: chrome.i18n.getMessage("placeholder"),
+  warning: chrome.i18n.getMessage("warning"),
+  duration: chrome.i18n.getMessage("duration"),
+  button: chrome.i18n.getMessage("button"),
+  time_default: chrome.i18n.getMessage("time_default"),
+  minute_1: chrome.i18n.getMessage("minute_1"),
+  minute_5: chrome.i18n.getMessage("minute_5"),
+  minute_10: chrome.i18n.getMessage("minute_10"),
+  minute_15: chrome.i18n.getMessage("minute_15"),
+  minute_30: chrome.i18n.getMessage("minute_30"),
+};
+
+// ✅ Send translations initially
+window.postMessage({
+  type: "FOCUSBEAR_TRANSLATIONS",
+  payload: translations
+}, "*");
+console.log("[FocusBear] Translation message sent");
+
+// ✅ Respond if popup requests translations again
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "REQUEST_TRANSLATIONS") {
+    console.log("[FocusBear] Popup requested translations, resending...");
+    window.postMessage({
+      type: "FOCUSBEAR_TRANSLATIONS",
+      payload: translations
+    }, "*");
+  }
+});
+
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let isBlurEnabled = true;
-
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
 
@@ -325,9 +359,7 @@ window.addEventListener("message", (event) => {
 
   if (event.data.type === "START_FOCUS_TIMER") {
     const durationInMinutes = event.data.payload;
-
     if (focusTimer) clearTimeout(focusTimer);
-
     console.log(`Starting focus timer for ${durationInMinutes} minutes.`);
     focusTimer = setTimeout(() => {
       console.log("Focus timer ended. Dispatching SHOW_POPUP event.");
@@ -335,16 +367,14 @@ window.addEventListener("message", (event) => {
     }, durationInMinutes * 60 * 1000);
   }
 
-  // NEW: Save focus data to chrome.storage.local
   if (event.data.type === "STORE_FOCUS_DATA") {
     const { focusStart, focusDuration, focusIntention } = event.data.payload;
     chrome.storage.local.set(
       { focusStart, focusDuration, focusIntention },
-      () => console.log(" Stored focus session in chrome.storage.local")
+      () => console.log("Stored focus session in chrome.storage.local")
     );
   }
 });
-
 
 chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   isBlurEnabled = blurEnabled;
