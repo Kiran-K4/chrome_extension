@@ -60,6 +60,7 @@ const IntentionPopup = () => {
       {
         type: "STORE_FOCUS_DATA",
         payload: {
+    domain: window.location.hostname,
           focusStart,
           focusDuration,
           focusIntention: intention,
