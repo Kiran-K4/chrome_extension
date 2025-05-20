@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { IntentionProvider } from "./context/intentionPopupContext";
-import { useFocusTimer } from "./hooks/useFocusTimer";
-import "./styles/popup.css";
-import iconUrl from '../public/icons/bearLogo.png';
-import setIcon from '../public/icons/settingsIcon.png';
+import './styles/popup.css';
 
+// UI toggle component
 const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
   <div className={`toggle ${checked ? 'active' : 'inactive'}`} onClick={onChange}>
     <span className="toggle-text">{checked ? 'ON' : 'OFF'}</span>
@@ -13,55 +10,86 @@ const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void 
   </div>
 );
 
+const formatTime = (seconds: number) => {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+};
+
 const App = () => {
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
-  const { intention, timeLeft, timerActive } = useFocusTimer();
-  const [showSettings, setShowSettings] = useState(false);
+  const [allFocusSessions, setAllFocusSessions] = useState<Record<string, { intention: string; timeLeft: number }>>({});
 
-  const [linkedinBlurPYMK, setLinkedinBlurPYMK] = useState(true);
-
+  // Load toggles
   useEffect(() => {
-    chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
-      setBlurEnabled(blurEnabled);
-    });
-    chrome.storage.local.get({ commentsHidden: true }, ({ commentsHidden }) => {
-      setHidden(commentsHidden);
-    });
-    chrome.storage.local.get({ homePageBlurEnabled: true }, ({ homePageBlurEnabled }) => {
-      setHomeBlurEnabled(homePageBlurEnabled);
-    });
-    chrome.storage.local.get({ shortsBlurEnabled: true }, ({ shortsBlurEnabled }) => {
-      setShortsBlurEnabled(shortsBlurEnabled);
-    });
-    chrome.storage.local.get({ linkedinBlurPYMK: true }, ({ linkedinBlurPYMK }) => {
-      setLinkedinBlurPYMK(linkedinBlurPYMK);
-    });
+    chrome.storage.local.get(
+      ['blurEnabled', 'commentsHidden', 'homePageBlurEnabled', 'shortsBlurEnabled'],
+      ({ blurEnabled, commentsHidden, homePageBlurEnabled, shortsBlurEnabled }) => {
+        setBlurEnabled(blurEnabled ?? true);
+        setHidden(commentsHidden ?? true);
+        setHomeBlurEnabled(homePageBlurEnabled ?? true);
+        setShortsBlurEnabled(shortsBlurEnabled ?? true);
+      }
+    );
   }, []);
 
-  const handleShortsBlurToggle = async () => {
-    const newValue = !shortsBlurEnabled;
-    setShortsBlurEnabled(newValue);
-    chrome.storage.local.set({ shortsBlurEnabled: newValue });
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_SHORTS_BLUR', payload: newValue });
-    }
-  };
+  // Live session timer update
+  useEffect(() => {
+    const updateSessions = () => {
+      chrome.storage.local.get("focusData", ({ focusData }) => {
+        const sessions: Record<string, { intention: string; timeLeft: number }> = {};
+        const now = Date.now();
 
-  const handleBlurToggle = async () => {
-    const newValue = !blurEnabled;
-    setBlurEnabled(newValue);
-    chrome.storage.local.set({ blurEnabled: newValue });
+        if (focusData) {
+          Object.entries(focusData).forEach(([domain, data]: [string, any]) => {
+            const { focusStart, focusDuration, focusIntention } = data;
+            const end = focusStart + focusDuration * 60 * 1000;
+            const timeLeft = Math.floor((end - now) / 1000);
+
+            if (timeLeft > 0) {
+              sessions[domain] = {
+                intention: focusIntention,
+                timeLeft,
+              };
+            }
+          });
+        }
+
+        setAllFocusSessions(sessions);
+      });
+    };
+
+    console.log("sessions", allFocusSessions);
+    updateSessions(); // first load
+    const interval = setInterval(updateSessions, 1000); // update every second
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleSetting = async (key: string, currentValue: boolean, messageType: string) => {
+    const newValue = !currentValue;
+    chrome.storage.local.set({ [key]: newValue });
+
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
+      chrome.tabs.sendMessage(tab.id, {
+        type: messageType,
+        payload: newValue,
+      });
+    }
+
+    switch (key) {
+      case 'blurEnabled': setBlurEnabled(newValue); break;
+      case 'commentsHidden': setHidden(newValue); break;
+      case 'homePageBlurEnabled': setHomeBlurEnabled(newValue); break;
+      case 'shortsBlurEnabled': setShortsBlurEnabled(newValue); break;
     }
   };
 
   const handleCommentsToggle = async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
     chrome.tabs.sendMessage(tab.id, { action: "toggleComments" }, (res) => {
@@ -71,61 +99,12 @@ const App = () => {
     });
   };
 
-  const handleHomeBlurToggle = async () => {
-    const newValue = !homeBlurEnabled;
-    setHomeBlurEnabled(newValue);
-    chrome.storage.local.set({ homePageBlurEnabled: newValue });
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_HOME_PAGE_BLUR', payload: newValue });
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-    const s = (seconds % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
-  };
-
-  const handleLinkedinBlurToggle = async () => {
-    const newValue = !linkedinBlurPYMK;
-    setLinkedinBlurPYMK(newValue);
-    await chrome.storage.local.set({ linkedinBlurPYMK: newValue });
-
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      await chrome.tabs.sendMessage(tab.id, {
-        type: 'TOGGLE_LINKEDIN_BLUR',
-        payload: newValue
-      });
-    }
-  };
-
-  const mainView = (
-    <div>
-      <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">Focus Bear</h1>
-
-      {timerActive ? (
-        <div className="timer-section">
-          <strong>Time Left:</strong> <span>{formatTime(timeLeft)}</span>
-          <strong>Intention:</strong> <span>{intention}</span><br/>
-        </div>
-      ) : (
-        <p className="no-session">No active focus session.</p>
-      )}
-
-      <img src={setIcon} alt="Settings Icon" className="settings-icon"
-        onClick={() => {
-          if (timerActive) {
-            alert("Settings cannot be configured during a session");
-          } else {
-            setShowSettings(true);
-          }
-        }}
-      />
-    </div>
-  );
+  return (
+    <div className="popup-container">
+      <div className="popup-header">
+        <img src="/icons/bearLogo.png" alt="Bear Icon" className="popup-logo" />
+        <h1 className="popup-title">FocusBear</h1>
+      </div>
 
   const settingsView = (
     <div>
@@ -134,11 +113,11 @@ const App = () => {
       <div className="options-container">
         <label className="option-label">
           <span className="option-text">Blur Home Page</span>
-          <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
+          <Toggle checked={homeBlurEnabled} onChange={() => toggleSetting('homePageBlurEnabled', homeBlurEnabled, 'TOGGLE_HOME_PAGE_BLUR')} />
         </label>
         <label className="option-label">
           <span className="option-text">Blur Distractions</span>
-          <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
+          <Toggle checked={blurEnabled} onChange={() => toggleSetting('blurEnabled', blurEnabled, 'TOGGLE_BLUR')} />
         </label>
         <label className="option-label">
           <span className="option-text">Hide Comments</span>
@@ -146,32 +125,31 @@ const App = () => {
         </label>
         <label className="option-label">
           <span className="option-text">Blur Shorts</span>
-          <Toggle checked={shortsBlurEnabled} onChange={handleShortsBlurToggle} />
-        </label>
-        <label className="option-label">
-          <span className="option-text">Blur “People You May Know”</span>
-          <Toggle
-            checked={linkedinBlurPYMK}
-            onChange={handleLinkedinBlurToggle} />
+          <Toggle checked={shortsBlurEnabled} onChange={() => toggleSetting('shortsBlurEnabled', shortsBlurEnabled, 'TOGGLE_SHORTS_BLUR')} />
         </label>
       </div>
-      <button className="close-button" onClick={() => setShowSettings(false)}>
-        Close
-      </button>
-    </div>
-  );
 
-  return (
-    <div className="popup-container">
-      {showSettings ? settingsView : mainView}
+      {/* Show all active domain sessions */}
+      {Object.keys(allFocusSessions).length > 0 ? (
+        <div style={{ marginTop: 20 }}>
+          {Object.entries(allFocusSessions).map(([domain, session]) => (
+            <div key={domain}>
+              <strong>{domain}</strong><br />
+              <strong>Intention:</strong> {session.intention}<br />
+              <strong>Time Left:</strong> {formatTime(session.timeLeft)}<hr />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={{ marginTop: 20 }}>No active focus session.</p>
+      )}
     </div>
   );
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <IntentionProvider>
-      <App />
-    </IntentionProvider>
+    <App />
   </React.StrictMode>
 );
+

@@ -1,11 +1,11 @@
 console.log("Content script injected");
 
-const COMMENT_BLUR_ID = 'focus-bear-comment-blur-style';
+const COMMENT_BLUR_ID = "focus-bear-comment-blur-style";
 const selectorsToHide = [
-  '#comments',
-  'ytd-item-section-renderer[static-comments-header]',
-  '#continuations',      
-  '.sidebar',
+  "#comments",
+  "ytd-item-section-renderer[static-comments-header]",
+  "#continuations",
+  ".sidebar",
   // 'ytd-watch-next-secondary-results-renderer'
 ];
 
@@ -91,7 +91,9 @@ window.addEventListener("message", (event) => {
 
   if (event.data.type === "SAVE_INTENTION") {
     const intention = event.data.payload;
-    const customEvent = new CustomEvent("intention-saved", { detail: intention });
+    const customEvent = new CustomEvent("intention-saved", {
+      detail: intention,
+    });
     window.dispatchEvent(customEvent);
   }
 
@@ -186,8 +188,11 @@ const unblurLeftIconSubscriptions = () => {
 };
 
 const blurShortsMenu = () => {
-  const shorts = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
-    .find(el => el.textContent?.trim().toLowerCase() === "shorts") as HTMLElement | undefined;
+  const shorts = Array.from(
+    document.querySelectorAll("ytd-guide-entry-renderer")
+  ).find((el) => el.textContent?.trim().toLowerCase() === "shorts") as
+    | HTMLElement
+    | undefined;
 
   if (shorts) {
     shorts.style.filter = "blur(6px)";
@@ -196,8 +201,11 @@ const blurShortsMenu = () => {
   }
 };
 const unblurShortsMenu = () => {
-  const shorts = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
-    .find(el => el.textContent?.trim().toLowerCase() === "shorts") as HTMLElement | undefined;
+  const shorts = Array.from(
+    document.querySelectorAll("ytd-guide-entry-renderer")
+  ).find((el) => el.textContent?.trim().toLowerCase() === "shorts") as
+    | HTMLElement
+    | undefined;
 
   if (shorts) {
     shorts.style.filter = "none";
@@ -211,7 +219,9 @@ const isShortsPage = () => {
 };
 
 const blurShortsPage = () => {
-  const shortsRoot = document.querySelector("ytd-reel-video-renderer, #shorts-container, .reel-video-renderer") as HTMLElement | null;
+  const shortsRoot = document.querySelector(
+    "ytd-reel-video-renderer, #shorts-container, .reel-video-renderer"
+  ) as HTMLElement | null;
   if (shortsRoot) {
     shortsRoot.style.filter = "blur(8px)";
     shortsRoot.style.pointerEvents = "none";
@@ -220,7 +230,9 @@ const blurShortsPage = () => {
 };
 
 const unblurShortsPage = () => {
-  const shortsRoot = document.querySelector("ytd-reel-video-renderer, #shorts-container, .reel-video-renderer") as HTMLElement | null;
+  const shortsRoot = document.querySelector(
+    "ytd-reel-video-renderer, #shorts-container, .reel-video-renderer"
+  ) as HTMLElement | null;
   if (shortsRoot) {
     shortsRoot.style.filter = "none";
     shortsRoot.style.pointerEvents = "auto";
@@ -267,8 +279,6 @@ const unblurShortsShelf = () => {
   });
 };
 
-
-
 const applyBlurToSections = () => {
   const sections = document.querySelectorAll("ytd-guide-section-renderer");
   sections.forEach((section, index) => {
@@ -283,9 +293,10 @@ const applyBlurToSections = () => {
   blurLeftIconSubscriptions(); 
 };
 
-
 const blurChipsBar = () => {
-  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
+  const chips = document.querySelector(
+    "ytd-feed-filter-chip-bar-renderer"
+  ) as HTMLElement | null;
   if (chips) {
     const height = chips.offsetHeight;
 
@@ -307,8 +318,10 @@ const removeBlur = () => {
     elem.style.pointerEvents = "";
     elem.style.userSelect = "";
   });
-  
-  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
+
+  const chips = document.querySelector(
+    "ytd-feed-filter-chip-bar-renderer"
+  ) as HTMLElement | null;
   if (chips) {
     chips.style.filter = "";
     chips.style.pointerEvents = "";
@@ -349,10 +362,13 @@ const chipsObserver = new MutationObserver(() => {
   });
 });
 const shortsmenuObserver = new MutationObserver(() => {
-  chrome.storage.local.get({ shortsBlurEnabled: true }, ({ shortsBlurEnabled }) => {
-    if (shortsBlurEnabled) blurShortsMenu();
-    else unblurShortsMenu();
-  });
+  chrome.storage.local.get(
+    { shortsBlurEnabled: true },
+    ({ shortsBlurEnabled }) => {
+      if (shortsBlurEnabled) blurShortsMenu();
+      else unblurShortsMenu();
+    }
+  );
 });
 const subscriptionsMenuObserver = new MutationObserver(() => {
   if (isBlurEnabled) {
@@ -373,18 +389,24 @@ const miniGuideObserver = new MutationObserver(() => {
 });
 
 const shortspageObserver = new MutationObserver(() => {
-  chrome.storage.local.get({ shortsBlurEnabled: true }, ({ shortsBlurEnabled }) => {
-    if (isShortsPage()) {
-      if (shortsBlurEnabled) blurShortsPage();
-      else unblurShortsPage();
+  chrome.storage.local.get(
+    { shortsBlurEnabled: true },
+    ({ shortsBlurEnabled }) => {
+      if (isShortsPage()) {
+        if (shortsBlurEnabled) blurShortsPage();
+        else unblurShortsPage();
+      }
     }
-  });
+  );
 });
 const shortsshelfObserver = new MutationObserver(() => {
-  chrome.storage.local.get({ shortsBlurEnabled: true }, ({ shortsBlurEnabled }) => {
-    if (shortsBlurEnabled) blurShortsShelf();
-    else unblurShortsShelf();
-  });
+  chrome.storage.local.get(
+    { shortsBlurEnabled: true },
+    ({ shortsBlurEnabled }) => {
+      if (shortsBlurEnabled) blurShortsShelf();
+      else unblurShortsShelf();
+    }
+  );
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -396,13 +418,65 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     if (isBlurEnabled) {
       applyBlurImmediately();
-      sidebarObserver.observe(document.body, { childList: true, subtree: true });
-      chipsObserver.observe(document.body, { childList: true, subtree: true }); 
+      sidebarObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+      chipsObserver.observe(document.body, { childList: true, subtree: true });
     } else {
       removeBlur();
       sidebarObserver.disconnect();
       chipsObserver.disconnect();
     }
+  }
+});
+
+window.addEventListener("message", (event) => {
+  if (event.source !== window) return;
+
+  if (event.data.type === "SAVE_INTENTION") {
+    const intention = event.data.payload;
+    const customEvent = new CustomEvent("intention-saved", {
+      detail: intention,
+    });
+    window.dispatchEvent(customEvent);
+  }
+
+  if (event.data.type === "START_FOCUS_TIMER") {
+    const durationInMinutes = event.data.payload;
+
+    if (focusTimer) clearTimeout(focusTimer);
+
+    console.log(`Starting focus timer for ${durationInMinutes} minutes.`);
+    focusTimer = setTimeout(() => {
+      console.log("Focus timer ended. Dispatching SHOW_POPUP event.");
+      window.dispatchEvent(new CustomEvent("show-popup-again"));
+    }, durationInMinutes * 60 * 1000);
+  }
+
+  // NEW: Save focus data to chrome.storage.local
+  if (event.data.type === "STORE_FOCUS_DATA") {
+    const { focusStart, focusDuration, focusIntention } = event.data.payload;
+    const domain = window.location.hostname;
+console.log(`domain: ${domain}`);
+    // Fetch existing focus data
+    chrome.storage.local.get(["focusData"], (result) => {
+      const focusData = result.focusData || {};
+
+      // Save new data under domain key
+      focusData[domain] = {
+        focusStart,
+        focusDuration,
+        focusIntention,
+      };
+
+      // Store updated focusData
+      chrome.storage.local.set({ focusData }, () => {
+        console.log(
+          `Stored focus session for ${domain} in chrome.storage.local`
+        );
+      });
+    });
   }
 });
 
@@ -415,7 +489,10 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   sidebarObserver.observe(document.body, { childList: true, subtree: true });
   chipsObserver.observe(document.body, { childList: true, subtree: true });
   shortsmenuObserver.observe(document.body, { childList: true, subtree: true });
-  shortsshelfObserver.observe(document.body, { childList: true, subtree: true });
+  shortsshelfObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
   shortspageObserver.observe(document.body, { childList: true, subtree: true });
   subscriptionsMenuObserver.observe(document.body, { childList: true, subtree: true });
   miniGuideObserver.observe(document.body, { childList: true, subtree: true });
@@ -425,17 +502,19 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
 // Blur comments
 function applyCommentBlur() {
   if (document.getElementById(COMMENT_BLUR_ID)) return;
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.id = COMMENT_BLUR_ID;
   style.textContent = selectorsToHide
-    .map(sel => `
+    .map(
+      (sel) => `
       ${sel} {
         filter: blur(6px) !important;
         pointer-events: none !important;
         user-select: none !important;
       }
-    `)
-    .join('\n');
+    `
+    )
+    .join("\n");
   document.head.appendChild(style);
 }
 
@@ -446,7 +525,7 @@ function removeCommentBlur() {
 
 // on page load, read storage and blur if needed
 const commentsObserver = new MutationObserver(() => {
-  chrome.storage.local.get('commentsHidden', ({ commentsHidden }) => {
+  chrome.storage.local.get("commentsHidden", ({ commentsHidden }) => {
     if (commentsHidden) applyCommentBlur();
   });
 });
@@ -454,15 +533,18 @@ commentsObserver.observe(document.body, { childList: true, subtree: true });
 
 // listen for your popup toggle
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg.action === 'toggleComments') {
-    chrome.storage.local.get({ commentsHidden: false }, ({ commentsHidden }) => {
-      const nowHidden = !commentsHidden;
-      if (nowHidden) applyCommentBlur();
-      else removeCommentBlur();
-      chrome.storage.local.set({ commentsHidden: nowHidden }, () => {
-        sendResponse({ status: nowHidden ? 'hidden' : 'shown' });
-      });
-    });
+  if (msg.action === "toggleComments") {
+    chrome.storage.local.get(
+      { commentsHidden: false },
+      ({ commentsHidden }) => {
+        const nowHidden = !commentsHidden;
+        if (nowHidden) applyCommentBlur();
+        else removeCommentBlur();
+        chrome.storage.local.set({ commentsHidden: nowHidden }, () => {
+          sendResponse({ status: nowHidden ? "hidden" : "shown" });
+        });
+      }
+    );
     return true;
   }
 });
@@ -509,13 +591,12 @@ function applyShortsToggle(shouldBlur: boolean) {
   }
 }
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'TOGGLE_SHORTS_BLUR') {
+  if (message.type === "TOGGLE_SHORTS_BLUR") {
     const blurShorts = message.payload;
     chrome.storage.local.set({ shortsBlurEnabled: blurShorts });
     applyShortsToggle(blurShorts);
   }
 });
-
 
 let lastUrl = location.href;
 const observeUrlChanges = () => {
