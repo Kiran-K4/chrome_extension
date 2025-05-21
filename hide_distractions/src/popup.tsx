@@ -86,19 +86,24 @@ const App = () => {
     <div>
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
       <h1 className="popup-title">Focus Bear</h1>
+
       {timerActive ? (
         <div className="timer-section">
           <strong>Time Left:</strong> <span>{formatTime(timeLeft)}</span>
-          <strong>Intention:</strong> <span>{intention}</span><br />
+          <strong>Intention:</strong> <span>{intention}</span><br/>
         </div>
       ) : (
         <p className="no-session">No active focus session.</p>
       )}
-      <img
-        src={setIcon}
-        alt="Settings Icon"
-        className="settings-icon"
-        onClick={() => setShowSettings(true)}
+
+      <img src={setIcon} alt="Settings Icon" className="settings-icon"
+        onClick={() => {
+          if (timerActive) {
+            alert("Settings cannot be configured during a session");
+          } else {
+            setShowSettings(true);
+          }
+        }}
       />
     </div>
   );
