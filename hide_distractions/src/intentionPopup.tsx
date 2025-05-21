@@ -131,7 +131,7 @@ const IntentionPopup = () => {
         />
         {showWarning && (
           <p className="focus-warning">
-            Wow that's a while! I think a more thoughtful reason would help keep our focus! (15+ characters).
+            Wow that's a while! I think a more thoughtful reason can help us focus! (15+ characters)
           </p>
         )}
         <p>
