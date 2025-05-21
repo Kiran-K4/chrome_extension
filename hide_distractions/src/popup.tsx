@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';import {
-  IntentionProvider,
-  useIntention,
-} from "./context/intentionPopupContext";
+import ReactDOM from 'react-dom/client';
+import { IntentionProvider, useIntention } from "./context/intentionPopupContext";
 import { useFocusTimer } from "./hooks/useFocusTimer";
-
 import "./styles/popup.css";
-
-// Remove the root background color settings
-document.body.style.margin = '0';
+import setIcon from '../public/icons/settingsIcon.png';
 
 // Add custom Toggle component
 const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => {
@@ -27,9 +22,9 @@ const App = () => {
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
- 
   const { intention, timeLeft, timerActive } = useFocusTimer();
 
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
@@ -117,14 +112,37 @@ const App = () => {
     }
   };
 
-  return (
-    <div className="popup-container">
-      <div className="popup-header">
-        <img src="/icons/bearLogo.png" alt="Bear Icon" className="popup-logo"/>
-        <h1 className="popup-title">YouTube</h1>
-      </div>
+  const mainView = (
+    <div>
+      <h1 style={{ fontSize: 20, marginBottom: 12 }}>Focus Bear</h1>
+      {timerActive ? (
+        <div style={{ marginTop: 20 }}>
+          <strong>Intention:</strong> <span>{intention}</span>
+          <br />
+          <strong>Time Left:</strong> <span>{formatTime(timeLeft)}</span>
+        </div>
+      ) : (
+        <p style={{ marginTop: 20 }}>No active focus session.</p>
+      )}
+      <img
+        src={setIcon} alt="Settings Icon"
+        style={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          width: 24,
+          height: 24,
+          cursor: 'pointer'}}
+        onClick={() => setShowSettings(true)}
+      />
+    </div>
+  )
 
-      <div className="options-container">
+  const settingsView = (
+    <div>
+      <div>
+        <h2 style={{ marginTop: 0 }}>Settings</h2>
+        <div className="options-container">
         <label className="option-label">
           <span className="option-text">Blur Home Page</span>
           <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
@@ -147,15 +165,19 @@ const App = () => {
 
       </div>
 
-      {timerActive ? (
-        <div style={{ marginTop: 20 }}>
-          <strong>Intention:</strong> <span>{intention}</span>
-          <br />
-          <strong>Time Left:</strong> <span>{formatTime(timeLeft)}</span>
-        </div>
-      ) : (
-        <p style={{ marginTop: 20 }}>No active focus session.</p>
-      )}
+        <button
+          style={{ marginTop: 16 }}
+          onClick={() => setShowSettings(false)}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="popup-container">
+      {showSettings ? settingsView : mainView}
     </div>
   );
 };
