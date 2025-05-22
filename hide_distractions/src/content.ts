@@ -10,13 +10,56 @@ const selectorsToHide = [
 ];
 
 // Inject floatingPopup if not already present
-if (!document.getElementById("intention-popup-script")) {
-  const script = document.createElement("script");
-  script.src = chrome.runtime.getURL("floatingPopup.js");
-  script.id = "intention-popup-script";
-  script.type = "module";
-  document.body.appendChild(script);
-}
+// 1) At the very top, to confirm the script is running and on which page:
+console.log("[Content] script loaded at URL:", location.href);
+
+// 2) Before you even call storage.get:
+console.log("[Content] about to read showIntentionPopup flag…");
+chrome.storage.local.get(
+  { showIntentionPopup: true, lastIntention: "", lastFocusDuration: 0 },
+  ({ showIntentionPopup, lastIntention, lastFocusDuration }) => {
+    // 3) Immediately after the storage read returns:
+    console.log(
+      "[Content] storage.get returned:",
+      { showIntentionPopup, lastIntention, lastFocusDuration }
+    );
+
+    if (!showIntentionPopup) {
+      console.log("[Content] showIntentionPopup is false → skipping injection");
+      return;
+    }
+
+    // 4) Check for an existing script tag:
+    const existing = !!document.getElementById("intention-popup-script");
+    console.log("[Content] intention-popup-script already on page?", existing);
+
+    if (!existing) {
+      console.log("[Content] injecting floatingPopup.js…");
+      const script = document.createElement("script");
+      script.src  = chrome.runtime.getURL("floatingPopup.js");
+      script.id   = "intention-popup-script";
+      script.type = "module";
+
+      script.onload = () => {
+        console.log("[Content] floatingPopup.js loaded, posting INIT_INTENTION_DATA", {
+          lastIntention, lastFocusDuration
+        });
+        window.postMessage({
+          type: "INIT_INTENTION_DATA",
+          payload: { lastIntention, lastFocusDuration }
+        }, "*");
+      };
+
+      document.body.appendChild(script);
+    }
+  }
+);
+
+// 5) In your show-popup-again listener, to see if you ever get this event:
+window.addEventListener("show-popup-again", () => {
+  console.log("[Content] show-popup-again event fired, attempting reinjection…");
+});
+
 
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let isBlurEnabled = true;
@@ -24,7 +67,6 @@ let isBlurEnabled = true;
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
 
-  // Save intention (sent from popup to content)
   if (event.data.type === "SAVE_INTENTION") {
     const intention = event.data.payload;
     const customEvent = new CustomEvent("intention-saved", {
@@ -33,10 +75,8 @@ window.addEventListener("message", (event) => {
     window.dispatchEvent(customEvent);
   }
 
-  // Start timer and dispatch event when finished
   if (event.data.type === "START_FOCUS_TIMER") {
     const durationInMinutes = event.data.payload;
-
     if (focusTimer) clearTimeout(focusTimer);
 
     console.log(`Starting focus timer for ${durationInMinutes} minutes.`);
@@ -45,12 +85,78 @@ window.addEventListener("message", (event) => {
       window.dispatchEvent(new CustomEvent("show-popup-again"));
     }, durationInMinutes * 60 * 1000);
   }
+
+  if (event.data.type === "STORE_FOCUS_DATA") {
+    const { focusStart, focusDuration, focusIntention } = event.data.payload;
+    chrome.storage.local.set(
+      {
+        focusStart,
+        focusDuration,
+        focusIntention,
+        showIntentionPopup: false,
+        lastIntention: focusIntention,
+        lastFocusDuration: focusDuration
+      },
+      () => console.log("✅ Stored focus session & hid popup permanently")
+    );
+  }
+
 });
 
 for (const selector of selectorsToHide) {
   const el = document.querySelector(selector);
   if (el) el.remove();
 }
+
+const blurTopSubscriptionsMenu = () => {
+  const subLink = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
+    .find(el => el.textContent?.trim().toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (subLink) {
+    subLink.style.filter = "blur(6px)";
+    subLink.style.pointerEvents = "none";
+    subLink.style.userSelect = "none";
+    subLink.style.background = "transparent"; // Removes hover highlight
+  }
+};
+
+const unblurTopSubscriptionsMenu = () => {
+  const subLink = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
+    .find(el => el.textContent?.trim().toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (subLink) {
+    subLink.style.filter = "none";
+    subLink.style.pointerEvents = "auto";
+    subLink.style.userSelect = "auto";
+    subLink.style.background = ""; // Reset background
+  }
+};
+
+const blurLeftIconSubscriptions = () => {
+  const miniSub = Array.from(document.querySelectorAll("ytd-mini-guide-entry-renderer"))
+    .find(el => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (miniSub) {
+    miniSub.style.filter = "blur(6px)";
+    miniSub.style.pointerEvents = "none";
+    miniSub.style.userSelect = "none";
+    miniSub.style.background = "transparent";
+  } else {
+    console.log("[DEBUG] Mini Subscriptions not found");
+  }
+};
+
+const unblurLeftIconSubscriptions = () => {
+  const miniSub = Array.from(document.querySelectorAll("ytd-mini-guide-entry-renderer"))
+    .find(el => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions") as HTMLElement | undefined;
+
+  if (miniSub) {
+    miniSub.style.filter = "";
+    miniSub.style.pointerEvents = "";
+    miniSub.style.userSelect = "";
+    miniSub.style.background = "";
+  }
+};
 
 const blurShortsMenu = () => {
   const shorts = Array.from(
@@ -154,6 +260,8 @@ const applyBlurToSections = () => {
       el.style.userSelect = "none";
     }
   });
+  blurTopSubscriptionsMenu();
+  blurLeftIconSubscriptions(); 
 };
 
 const blurChipsBar = () => {
@@ -181,10 +289,8 @@ const removeBlur = () => {
     elem.style.pointerEvents = "";
     elem.style.userSelect = "";
   });
-
-  const chips = document.querySelector(
-    "ytd-feed-filter-chip-bar-renderer"
-  ) as HTMLElement | null;
+  
+  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
   if (chips) {
     chips.style.filter = "";
     chips.style.pointerEvents = "";
@@ -195,6 +301,8 @@ const removeBlur = () => {
     chips.style.display = "";
     chips.style.boxSizing = "";
   }
+  unblurTopSubscriptionsMenu();
+  unblurLeftIconSubscriptions();
 };
 
 const applyBlurImmediately = () => {
@@ -205,13 +313,22 @@ const applyBlurImmediately = () => {
   if (isShortsPage()) {
     blurShortsPage();
   }
+  blurTopSubscriptionsMenu();
+  blurLeftIconSubscriptions();
 };
 
 const sidebarObserver = new MutationObserver(() => {
-  if (isBlurEnabled) applyBlurToSections();
+  chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
+    if (blurEnabled) applyBlurToSections();
+    else removeBlur();  // optional cleanup
+  });
 });
+
 const chipsObserver = new MutationObserver(() => {
-  if (isBlurEnabled) blurChipsBar();
+  chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
+    if (blurEnabled) blurChipsBar();
+    else removeBlur();  // if such a function exists
+  });
 });
 const shortsmenuObserver = new MutationObserver(() => {
   chrome.storage.local.get(
@@ -222,6 +339,24 @@ const shortsmenuObserver = new MutationObserver(() => {
     }
   );
 });
+const subscriptionsMenuObserver = new MutationObserver(() => {
+  if (isBlurEnabled) {
+    blurTopSubscriptionsMenu();
+  } else {
+    unblurTopSubscriptionsMenu();
+  }
+});
+
+const miniGuideObserver = new MutationObserver(() => {
+  setTimeout(() => {
+    if (isBlurEnabled) {
+      blurLeftIconSubscriptions();
+    } else {
+      unblurLeftIconSubscriptions();
+    }
+  }, 100); // ⏱ small delay ensures the DOM element is ready
+});
+
 const shortspageObserver = new MutationObserver(() => {
   chrome.storage.local.get(
     { shortsBlurEnabled: true },
@@ -328,6 +463,9 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
     subtree: true,
   });
   shortspageObserver.observe(document.body, { childList: true, subtree: true });
+  subscriptionsMenuObserver.observe(document.body, { childList: true, subtree: true });
+  miniGuideObserver.observe(document.body, { childList: true, subtree: true });
+
 });
 
 // Blur comments
@@ -381,30 +519,28 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 window.addEventListener("show-popup-again", () => {
-  console.log(" Focus time ended – triggering popup re-injection");
+  chrome.storage.local.get(
+    { showIntentionPopup: true, lastIntention: "", lastFocusDuration: 0 },
+    ({ showIntentionPopup, lastIntention, lastFocusDuration }) => {
+      if (!showIntentionPopup) return;
 
-  // Only inject if it's not already present
-  if (!document.getElementById("intention-popup-script")) {
-    const script = document.createElement("script");
-    script.src = chrome.runtime.getURL("floatingPopup.js");
-    script.id = "intention-popup-script";
-    script.type = "module";
-    document.body.appendChild(script);
-  }
+      if (!document.getElementById("intention-popup-script")) {
+        const script = document.createElement("script");
+        script.src  = chrome.runtime.getURL("floatingPopup.js");
+        script.id   = "intention-popup-script";
+        script.type = "module";
+        script.onload = () => {
+          window.postMessage({
+            type: "INIT_INTENTION_DATA",
+            payload: { lastIntention, lastFocusDuration },
+          }, "*");
+        };
+        document.body.appendChild(script);
+      }
+    }
+  );
 });
 
-window.addEventListener("show-popup-again", () => {
-  console.log("⏰ Focus time ended – triggering popup re-injection");
-
-  // Only inject if it's not already present
-  if (!document.getElementById("intention-popup-script")) {
-    const script = document.createElement("script");
-    script.src = chrome.runtime.getURL("floatingPopup.js");
-    script.id = "intention-popup-script";
-    script.type = "module";
-    document.body.appendChild(script);
-  }
-});
 function applyShortsToggle(shouldBlur: boolean) {
   if (shouldBlur) {
     blurShortsMenu();
