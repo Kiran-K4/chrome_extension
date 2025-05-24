@@ -6,7 +6,7 @@
   "author": "Kiran Kulkarni",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && shx mkdir -p dist/assets && shx cp src/styles/* dist/assets/ && shx cp public/manifest.json dist/ && cpx \"public/icons/**/*\" dist/icons",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -27,6 +27,7 @@
     "shx": "^0.4.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vite-plugin-static-copy": "^3.0.0"
   }
 }
