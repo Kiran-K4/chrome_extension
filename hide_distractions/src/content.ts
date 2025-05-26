@@ -55,6 +55,28 @@ chrome.storage.local.get(
   }
 );
 
+// 2) **New: schedule the timer in this tab on load**
+chrome.storage.local.get(
+  ["focusStart", "focusDuration", "showIntentionPopup"],
+  ({ focusStart, focusDuration, showIntentionPopup }) => {
+    if (focusStart && focusDuration && !showIntentionPopup) {
+      const elapsed   = Date.now() - focusStart;
+      const totalMs   = focusDuration * 60 * 1000;
+      const remaining = totalMs - elapsed;
+
+      if (remaining > 0) {
+        console.log(`[Content] Scheduling re-popup in ${remaining}ms`);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("show-popup-again"));
+        }, remaining);
+      } else {
+        console.log("[Content] Timer already expired — showing popup now");
+        window.dispatchEvent(new CustomEvent("show-popup-again"));
+      }
+    }
+  }
+);
+
 // 5) In your show-popup-again listener, to see if you ever get this event:
 window.addEventListener("show-popup-again", () => {
   console.log("[Content] show-popup-again event fired, attempting reinjection…");
@@ -75,17 +97,7 @@ window.addEventListener("message", (event) => {
     window.dispatchEvent(customEvent);
   }
 
-  if (event.data.type === "START_FOCUS_TIMER") {
-    const durationInMinutes = event.data.payload;
-    if (focusTimer) clearTimeout(focusTimer);
-
-    console.log(`Starting focus timer for ${durationInMinutes} minutes.`);
-    focusTimer = setTimeout(() => {
-      console.log("Focus timer ended. Dispatching SHOW_POPUP event.");
-      window.dispatchEvent(new CustomEvent("show-popup-again"));
-    }, durationInMinutes * 60 * 1000);
-  }
-
+ 
   if (event.data.type === "STORE_FOCUS_DATA") {
     const { focusStart, focusDuration, focusIntention } = event.data.payload;
     chrome.storage.local.set(
@@ -97,7 +109,24 @@ window.addEventListener("message", (event) => {
         lastIntention: focusIntention,
         lastFocusDuration: focusDuration
       },
-      () => console.log("✅ Stored focus session & hid popup permanently")
+      () => {
+        console.log("✅ Stored focus session & hid popup permanently");
+
+        // ─── schedule the popup in this tab right now ───
+        const elapsed   = Date.now() - focusStart;
+        const totalMs   = focusDuration * 60 * 1000;
+        const remaining = totalMs - elapsed;
+
+        if (remaining > 0) {
+          console.log(`[Content] [STORE] Scheduling re-popup in ${remaining}ms`);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent("show-popup-again"));
+          }, remaining);
+        } else {
+          console.log("[Content] [STORE] Timer already expired; showing now");
+          window.dispatchEvent(new CustomEvent("show-popup-again"));
+        }
+      }
     );
   }
 
@@ -519,27 +548,34 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 window.addEventListener("show-popup-again", () => {
+  // fetch only the data we need for pre-filling the form:
   chrome.storage.local.get(
-    { showIntentionPopup: true, lastIntention: "", lastFocusDuration: 0 },
-    ({ showIntentionPopup, lastIntention, lastFocusDuration }) => {
-      if (!showIntentionPopup) return;
-
-      if (!document.getElementById("intention-popup-script")) {
-        const script = document.createElement("script");
-        script.src  = chrome.runtime.getURL("floatingPopup.js");
-        script.id   = "intention-popup-script";
-        script.type = "module";
-        script.onload = () => {
-          window.postMessage({
-            type: "INIT_INTENTION_DATA",
-            payload: { lastIntention, lastFocusDuration },
-          }, "*");
-        };
-        document.body.appendChild(script);
+    ["lastIntention", "lastFocusDuration"],
+    ({ lastIntention, lastFocusDuration }) => {
+      // never inject twice
+      if (document.getElementById("intention-popup-script")) {
+        return;
       }
+
+      // inject the popup script
+      const script = document.createElement("script");
+      script.src  = chrome.runtime.getURL("floatingPopup.js");
+      script.id   = "intention-popup-script";
+      script.type = "module";
+
+      script.onload = () => {
+        // send it its saved data
+        window.postMessage({
+          type: "INIT_INTENTION_DATA",
+          payload: { lastIntention, lastFocusDuration },
+        }, "*");
+      };
+
+      document.body.appendChild(script);
     }
   );
 });
+
 
 function applyShortsToggle(shouldBlur: boolean) {
   if (shouldBlur) {
