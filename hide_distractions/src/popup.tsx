@@ -21,6 +21,8 @@ const App = () => {
   const { intention, timeLeft, timerActive } = useFocusTimer();
   const [showSettings, setShowSettings] = useState(false);
 
+  const [linkedinBlurPYMK, setLinkedinBlurPYMK] = useState(true);
+
   useEffect(() => {
     chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
       setBlurEnabled(blurEnabled);
@@ -33,6 +35,9 @@ const App = () => {
     });
     chrome.storage.local.get({ shortsBlurEnabled: true }, ({ shortsBlurEnabled }) => {
       setShortsBlurEnabled(shortsBlurEnabled);
+    });
+    chrome.storage.local.get({ linkedinBlurPYMK: true }, ({ linkedinBlurPYMK }) => {
+      setLinkedinBlurPYMK(linkedinBlurPYMK);
     });
   }, []);
 
@@ -82,6 +87,20 @@ const App = () => {
     return `${m}:${s}`;
   };
 
+  const handleLinkedinBlurToggle = async () => {
+    const newValue = !linkedinBlurPYMK;
+    setLinkedinBlurPYMK(newValue);
+    await chrome.storage.local.set({ linkedinBlurPYMK: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: 'TOGGLE_LINKEDIN_BLUR',
+        payload: newValue
+      });
+    }
+  };
+
   const mainView = (
     <div>
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
@@ -128,6 +147,12 @@ const App = () => {
         <label className="option-label">
           <span className="option-text">Blur Shorts</span>
           <Toggle checked={shortsBlurEnabled} onChange={handleShortsBlurToggle} />
+        </label>
+        <label className="option-label">
+          <span className="option-text">Blur “People You May Know”</span>
+          <Toggle
+            checked={linkedinBlurPYMK}
+            onChange={handleLinkedinBlurToggle} />
         </label>
       </div>
       <button className="close-button" onClick={() => setShowSettings(false)}>

@@ -4,7 +4,7 @@
   "version": "1.0",
   "description": "Hide distractions using a clean Chrome Extension.",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["*://*.youtube.com/*"],
+  "host_permissions": ["*://*.youtube.com/*", "*://*.linkedin.com/*"],
   "action": {
     "default_popup": "src/popup.html",
     "default_icon": {
@@ -19,6 +19,10 @@
       "matches": ["*://*.youtube.com/*"],
       "js": ["content.js", "homePageBlur.js"],
       "css": ["assets/intentionPopup.css"]
+    },
+    {
+      "matches": ["*://*.linkedin.com/*"],
+      "js": ["linkedin.js"]
     }
   ],
   "web_accessible_resources": [
