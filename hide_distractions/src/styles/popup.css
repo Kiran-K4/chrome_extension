@@ -181,3 +181,14 @@ button.close-button:disabled {
 img.settings-icon {
   z-index: 10;
 }
+.settings-warning {
+  margin-top: 10px;
+  text-align: center;
+  color: #a94442;
+  background: #fff3cd;
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  border: 1px solid #f5c6cb;
+}
