@@ -185,20 +185,6 @@ const mainView = (
         </label>
       </div>
 
-      {/* Show all active domain sessions */}
-      {Object.keys(allFocusSessions).length > 0 ? (
-        <div style={{ marginTop: 20 }}>
-          {Object.entries(allFocusSessions).map(([domain, session]) => (
-            <div key={domain}>
-              <strong>{domain}</strong><br />
-              <strong>Intention:</strong> {session.intention}<br />
-              <strong>Time Left:</strong> {formatTime(session.timeLeft)}<hr />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p style={{ marginTop: 20 }}>No active focus session.</p>
-      )}
       <button className="close-button" onClick={() => setShowSettings(false)}>
         Close
       </button>
