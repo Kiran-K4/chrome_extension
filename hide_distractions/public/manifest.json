@@ -4,7 +4,7 @@
   "version": "1.0",
   "description": "Hide distractions using a clean Chrome Extension.",
   "default_locale": "en",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "host_permissions": ["*://*.youtube.com/*"],
   "action": {
     "default_popup": "src/popup.html",    
@@ -17,7 +17,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/*"],
+      "matches": ["*://*.youtube.com/*"],
       "js": ["content.js", "homePageBlur.js"],
       "css": ["assets/intentionPopup.css"]
     }

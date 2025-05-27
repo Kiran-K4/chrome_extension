@@ -1,36 +1,63 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Fixed-size container */
 .popup-container {
-  padding: 16px;
+  position: relative;
+  width: 400px;
+  height: 260px;
+  padding: 24px 30px 30px;
+  background-color: #FFE4C6;
   font-family: sans-serif;
-  background-color: #FFC88B;
-  border-radius: 16px;
-  min-width: 300px;
-  min-height: 200px;
-  margin: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.popup-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  justify-content: center;
-}
-
-.popup-logo {
+/* Logo */
+.focus-logo {
+  position: absolute;
+  top: 24px;
+  left: 24px;
   width: 32px;
-  height: 32px;
-  object-fit: contain;
-  display: block;
+  height: auto;
+  z-index: 1;
 }
 
-.popup-title {
+/* Titles */
+h1.popup-title,
+h2.settings-title {
+  font-size: 2rem;
+  margin: 0 0 20px;
+  color: #663300;
+  text-align: center;
+  position: relative;
+  top: -4px;
+}
+
+/* Timer / no-session text */
+.timer-section,
+p.no-session {
+  margin-top: 20px;
   font-size: 20px;
-  margin: 0;
+  text-align: left;
 }
 
+.timer-section span:first-of-type {
+  display: block;
+  margin: 0 0 12px;
+}
+
+/* Settings icon */
+img.settings-icon {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  width: 32px;
+  height: auto;
+  cursor: pointer;
+}
+
+/* Options list */
 .options-container {
   display: flex;
   flex-direction: column;
@@ -40,31 +67,33 @@
 
 .option-label {
   display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  flex-direction: row-reverse;
-  justify-content: flex-end;
+  font-size: 18px;
 }
 
 .option-text {
-  font-size: 16px;
+  font-size: 18px;
 }
 
+/* Toggle switch */
 .toggle {
   display: flex;
   align-items: center;
-  border-radius: 20px;
-  padding: 2px 8px;
   width: 55px;
   height: 24px;
+  padding: 2px 8px;
+  border-radius: 20px;
   position: relative;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .toggle.active {
-  background-color: #4CAF50;
+  background-color: #E9902C;
 }
 
 .toggle.inactive {
@@ -72,18 +101,18 @@
 }
 
 .toggle-text {
-  color: white;
+  margin-right: auto;
   font-size: 12px;
   font-weight: bold;
-  margin-right: auto;
+  color: white;
 }
 
 .toggle-button {
+  position: absolute;
   width: 20px;
   height: 20px;
   background-color: white;
   border-radius: 50%;
-  position: absolute;
   transition: 0.3s;
 }
 
@@ -93,4 +122,25 @@
 
 .toggle.inactive .toggle-button {
   left: 2px;
-} 
+}
+
+/* Close button */
+button.close-button {
+  display: block;
+  margin: 16px auto 0;
+  width: 225px;
+  padding: 10px 15px;
+  font-size: 18px;
+  color: #F3A650;
+  background-color: #FFFCF6;
+  border: 2px solid #F3A650;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button.close-button:disabled {
+  background-color: #CCCCCC;
+  color: #666;
+  cursor: not-allowed;
+}
