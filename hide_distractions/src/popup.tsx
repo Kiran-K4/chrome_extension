@@ -99,12 +99,50 @@ const App = () => {
     });
   };
 
-  return (
-    <div className="popup-container">
-      <div className="popup-header">
-        <img src="/icons/bearLogo.png" alt="Bear Icon" className="popup-logo" />
-        <h1 className="popup-title">FocusBear</h1>
+  const handleHomeBlurToggle = async () => {
+    const newValue = !homeBlurEnabled;
+    setHomeBlurEnabled(newValue);
+    chrome.storage.local.set({ homePageBlurEnabled: newValue });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_HOME_PAGE_BLUR', payload: newValue });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+const mainView = (
+  <div className="main-view">
+    <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+    <h1 className="popup-title">Focus Bear</h1>
+
+    {Object.keys(allFocusSessions).length > 0 ? (
+      <div className="session-list">
+        {Object.entries(allFocusSessions).map(([domain, session]) => (
+          <div key={domain} className="session-card">
+            <strong className="domain">{domain}</strong><br />
+            <span className="label">Time Left:</span> {formatTime(session.timeLeft)}<br />
+            <span className="label">Intention:</span> {session.intention}
+          </div>
+        ))}
       </div>
+    ) : (
+      <p className="no-session">No active focus session.</p>
+    )}
+
+    <img
+      src={setIcon}
+      alt="Settings Icon"
+      className="settings-icon"
+      onClick={() => setShowSettings(true)}
+    />
+  </div>
+);
+
+
 
   const settingsView = (
     <div>
