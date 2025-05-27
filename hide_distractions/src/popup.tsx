@@ -1,18 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
-import './styles/popup.css';
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom/client";
+import { IntentionProvider } from "./context/intentionPopupContext";
+import { useFocusTimer } from "./hooks/useFocusTimer";
+import "./styles/popup.css";
+import iconUrl from "../public/icons/bearLogo.png";
+import setIcon from "../public/icons/settingsIcon.png";
 
-// UI toggle component
-const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-  <div className={`toggle ${checked ? 'active' : 'inactive'}`} onClick={onChange}>
-    <span className="toggle-text">{checked ? 'ON' : 'OFF'}</span>
+const Toggle = ({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: () => void;
+}) => (
+  <div
+    className={`toggle ${checked ? "active" : "inactive"}`}
+    onClick={onChange}
+  >
+    <span className="toggle-text">{checked ? "ON" : "OFF"}</span>
     <div className="toggle-button" />
   </div>
 );
 
 const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-  const s = (seconds % 60).toString().padStart(2, '0');
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const s = (seconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 };
 
@@ -21,13 +35,38 @@ const App = () => {
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
-  const [allFocusSessions, setAllFocusSessions] = useState<Record<string, { intention: string; timeLeft: number }>>({});
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
+  const [currentDomain, setCurrentDomain] = useState<string | null>(null);
+
+  const [allFocusSessions, setAllFocusSessions] = useState<
+    Record<string, { intention: string; timeLeft: number }>
+  >({});
+
+  useEffect(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+      if (tab?.url) {
+        const domain = new URL(tab.url).hostname.replace(/^www\./, "");
+        setCurrentDomain(domain);
+      }
+    });
+  }, []);
 
   // Load toggles
   useEffect(() => {
     chrome.storage.local.get(
-      ['blurEnabled', 'commentsHidden', 'homePageBlurEnabled', 'shortsBlurEnabled'],
-      ({ blurEnabled, commentsHidden, homePageBlurEnabled, shortsBlurEnabled }) => {
+      [
+        "blurEnabled",
+        "commentsHidden",
+        "homePageBlurEnabled",
+        "shortsBlurEnabled",
+      ],
+      ({
+        blurEnabled,
+        commentsHidden,
+        homePageBlurEnabled,
+        shortsBlurEnabled,
+      }) => {
         setBlurEnabled(blurEnabled ?? true);
         setHidden(commentsHidden ?? true);
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
@@ -38,9 +77,33 @@ const App = () => {
 
   // Live session timer update
   useEffect(() => {
+    chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
+      setBlurEnabled(blurEnabled);
+    });
+    chrome.storage.local.get({ commentsHidden: true }, ({ commentsHidden }) => {
+      setHidden(commentsHidden);
+    });
+    chrome.storage.local.get(
+      { homePageBlurEnabled: true },
+      ({ homePageBlurEnabled }) => {
+        setHomeBlurEnabled(homePageBlurEnabled);
+      }
+    );
+    chrome.storage.local.get(
+      { shortsBlurEnabled: true },
+      ({ shortsBlurEnabled }) => {
+        setShortsBlurEnabled(shortsBlurEnabled);
+      }
+    );
+  }, []);
+
+  useEffect(() => {
     const updateSessions = () => {
       chrome.storage.local.get("focusData", ({ focusData }) => {
-        const sessions: Record<string, { intention: string; timeLeft: number }> = {};
+        const sessions: Record<
+          string,
+          { intention: string; timeLeft: number }
+        > = {};
         const now = Date.now();
 
         if (focusData) {
@@ -68,29 +131,43 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const toggleSetting = async (key: string, currentValue: boolean, messageType: string) => {
-    const newValue = !currentValue;
-    chrome.storage.local.set({ [key]: newValue });
-
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const handleShortsBlurToggle = async () => {
+    const newValue = !shortsBlurEnabled;
+    setShortsBlurEnabled(newValue);
+    chrome.storage.local.set({ shortsBlurEnabled: newValue });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
-        type: messageType,
+        type: "TOGGLE_SHORTS_BLUR",
         payload: newValue,
       });
     }
+  };
 
-    switch (key) {
-      case 'blurEnabled': setBlurEnabled(newValue); break;
-      case 'commentsHidden': setHidden(newValue); break;
-      case 'homePageBlurEnabled': setHomeBlurEnabled(newValue); break;
-      case 'shortsBlurEnabled': setShortsBlurEnabled(newValue); break;
+  const handleBlurToggle = async () => {
+    const newValue = !blurEnabled;
+    setBlurEnabled(newValue);
+    chrome.storage.local.set({ blurEnabled: newValue });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_BLUR",
+        payload: newValue,
+      });
     }
   };
 
   const handleCommentsToggle = async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
     if (!tab?.id) return;
     chrome.tabs.sendMessage(tab.id, { action: "toggleComments" }, (res) => {
       if (!chrome.runtime.lastError && res?.status) {
@@ -103,46 +180,67 @@ const App = () => {
     const newValue = !homeBlurEnabled;
     setHomeBlurEnabled(newValue);
     chrome.storage.local.set({ homePageBlurEnabled: newValue });
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
     if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_HOME_PAGE_BLUR', payload: newValue });
+      chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_HOME_PAGE_BLUR",
+        payload: newValue,
+      });
     }
   };
 
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
     const s = (seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
-const mainView = (
-  <div className="main-view">
-    <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-    <h1 className="popup-title">Focus Bear</h1>
+  const mainView = (
+    <div className="main-view">
+      <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+      <h1 className="popup-title">Focus Bear</h1>
 
-    {Object.keys(allFocusSessions).length > 0 ? (
-      <div className="session-list">
-        {Object.entries(allFocusSessions).map(([domain, session]) => (
-          <div key={domain} className="session-card">
-            <strong className="domain">{domain}</strong><br />
-            <span className="label">Time Left:</span> {formatTime(session.timeLeft)}<br />
-            <span className="label">Intention:</span> {session.intention}
-          </div>
-        ))}
-      </div>
-    ) : (
-      <p className="no-session">No active focus session.</p>
-    )}
+      {Object.keys(allFocusSessions).length > 0 ? (
+        <div className="session-list">
+          {Object.entries(allFocusSessions).map(([domain, session]) => (
+            <div key={domain} className="session-card">
+              <strong className="domain">{domain}</strong>
+              <br />
+              <span className="label">Time Left:</span>{" "}
+              {formatTime(session.timeLeft)}
+              <br />
+              <span className="label">Intention:</span> {session.intention}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="no-session">No active focus session.</p>
+      )}
 
-    <img
-      src={setIcon}
-      alt="Settings Icon"
-      className="settings-icon"
-      onClick={() => setShowSettings(true)}
-    />
-  </div>
-);
-
-
+      <img
+        src={setIcon}
+        alt="Settings Icon"
+        className="settings-icon"
+        onClick={() => {
+          if (currentDomain && allFocusSessions[currentDomain]) {
+            setSettingsBlockedMessage(true);
+            setTimeout(() => setSettingsBlockedMessage(false), 3000); // hide after 3 sec
+          } else {
+            setShowSettings(true);
+          }
+        }}
+      />
+      {settingsBlockedMessage && (
+        <p className="settings-warning">
+          ⚠️ Settings cannot be configured during an active session.
+        </p>
+      )}
+    </div>
+  );
 
   const settingsView = (
     <div>
@@ -151,11 +249,11 @@ const mainView = (
       <div className="options-container">
         <label className="option-label">
           <span className="option-text">Blur Home Page</span>
-          <Toggle checked={homeBlurEnabled} onChange={() => toggleSetting('homePageBlurEnabled', homeBlurEnabled, 'TOGGLE_HOME_PAGE_BLUR')} />
+          <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
         </label>
         <label className="option-label">
           <span className="option-text">Blur Distractions</span>
-          <Toggle checked={blurEnabled} onChange={() => toggleSetting('blurEnabled', blurEnabled, 'TOGGLE_BLUR')} />
+          <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
         </label>
         <label className="option-label">
           <span className="option-text">Hide Comments</span>
@@ -163,10 +261,12 @@ const mainView = (
         </label>
         <label className="option-label">
           <span className="option-text">Blur Shorts</span>
-          <Toggle checked={shortsBlurEnabled} onChange={() => toggleSetting('shortsBlurEnabled', shortsBlurEnabled, 'TOGGLE_SHORTS_BLUR')} />
+          <Toggle
+            checked={shortsBlurEnabled}
+            onChange={handleShortsBlurToggle}
+          />
         </label>
       </div>
-
       <button className="close-button" onClick={() => setShowSettings(false)}>
         Close
       </button>
@@ -185,4 +285,3 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <App />
   </React.StrictMode>
 );
-
