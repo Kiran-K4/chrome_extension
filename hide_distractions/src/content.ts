@@ -9,17 +9,6 @@ const selectorsToHide = [
 ];
 
 // Inject floatingPopup if not already present
-<<<<<<< HEAD
-console.log("Injecting intention popup...");
-
-if (!document.getElementById("intention-popup-script")) {
-  const script = document.createElement("script");
-  script.type = "module";
-  script.id = "intention-popup-script";
-  script.src = chrome.runtime.getURL("floatingPopup.js");
-  document.body.appendChild(script);
-}
-=======
 // 1) At the very top, to confirm the script is running and on which page:
 console.log("[Content] script loaded at URL:", location.href);
 
@@ -92,9 +81,6 @@ window.addEventListener("show-popup-again", () => {
   console.log("[Content] show-popup-again event fired, attempting reinjection…");
 });
 
->>>>>>> main
-
-//Get translations
 const translations = {
   heading: chrome.i18n.getMessage("heading"),
   prompt: chrome.i18n.getMessage("prompt"),
@@ -229,6 +215,9 @@ const unblurLeftIconSubscriptions = () => {
   }
 };
 
+
+
+
 const blurShortsMenu = () => {
   const shorts = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
     .find(el => el.textContent?.trim().toLowerCase() === "shorts") as HTMLElement | undefined;
@@ -325,6 +314,8 @@ const applyBlurToSections = () => {
   });
   blurTopSubscriptionsMenu();
   blurLeftIconSubscriptions(); 
+  blurTopSubscriptionsMenu();
+  blurLeftIconSubscriptions(); 
 };
 
 
@@ -352,6 +343,7 @@ const removeBlur = () => {
     elem.style.userSelect = "";
   });
   
+  
   const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
   if (chips) {
     chips.style.filter = "";
@@ -365,6 +357,8 @@ const removeBlur = () => {
   }
   unblurTopSubscriptionsMenu();
   unblurLeftIconSubscriptions();
+  unblurTopSubscriptionsMenu();
+  unblurLeftIconSubscriptions();
 };
 
 const applyBlurImmediately = () => {
@@ -375,6 +369,8 @@ const applyBlurImmediately = () => {
   if (isShortsPage()) {
     blurShortsPage();
   }
+  blurTopSubscriptionsMenu();
+  blurLeftIconSubscriptions();
   blurTopSubscriptionsMenu();
   blurLeftIconSubscriptions();
 };
@@ -450,7 +446,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-<<<<<<< HEAD
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
 
@@ -479,8 +474,6 @@ window.addEventListener("message", (event) => {
   }
 });
 
-=======
->>>>>>> main
 chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
   isBlurEnabled = blurEnabled;
 
@@ -570,13 +563,6 @@ window.addEventListener("show-popup-again", () => {
     }
   );
 });
-
-<<<<<<< HEAD
-window.addEventListener("show-popup-again", () => {
-  console.log("Focus time ended – triggering popup re-injection");
-=======
->>>>>>> main
-
 function applyShortsToggle(shouldBlur: boolean) {
   if (shouldBlur) {
     blurShortsMenu();

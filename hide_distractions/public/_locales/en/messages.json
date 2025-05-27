@@ -77,6 +77,11 @@
   "minute_30": {
     "message": "30 minutes",
     "description": "30-minute duration option"
-  }
+  },
+  "settings_locked_during_session": 
+  {
+  "message": "Settings cannot be configured during a session",
+  "description": "Alert shown when trying to open settings during a focus session"
+ }
 
 }

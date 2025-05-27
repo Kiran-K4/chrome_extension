@@ -91,22 +91,23 @@ const App = () => {
   const mainView = (
     <div>
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-        <h1 className="popup-title">{t("youtube_label")}</h1>
+      <h1 className="popup-title">{t("youtube_label")}</h1>
 
 
       {timerActive ? (
         <div className="timer-section">
-          <strong>Time Left:</strong> <span>{formatTime(timeLeft)}</span>
-          <strong>Intention:</strong> <span>{intention}</span><br/>
+          <strong>{t("time_left")}:</strong> <span>{formatTime(timeLeft)}</span>
+          <strong>{t("intention_label")}:</strong> <span>{intention}</span><br />
         </div>
       ) : (
-        <p className="no-session">No active focus session.</p>
+        <p className="no-session">{t("no_focus_session")}</p>
+
       )}
 
       <img src={setIcon} alt="Settings Icon" className="settings-icon"
         onClick={() => {
           if (timerActive) {
-            alert("Settings cannot be configured during a session");
+            alert(t("settings_locked_during_session"));
           } else {
             setShowSettings(true);
           }
@@ -147,6 +148,11 @@ const App = () => {
       ) : (
         <p style={{ marginTop: 20 }}>{t("no_focus_session")}</p>
       )}
+    </div>
+  );
+  return (
+    <div className="popup-container">
+      {showSettings ? settingsView : mainView}
     </div>
   );
 };

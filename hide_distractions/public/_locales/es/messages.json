@@ -59,6 +59,9 @@
   },
   "minute_30": {
     "message": "30 minutos"
+  },
+  "settings_locked_during_session": 
+  {
+  "message": "No se pueden configurar los ajustes durante una sesión"
   }
-
 }
