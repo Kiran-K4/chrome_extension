@@ -19,10 +19,11 @@ chrome.storage.local.get(
   { showIntentionPopup: true, lastIntention: "", lastFocusDuration: 0 },
   ({ showIntentionPopup, lastIntention, lastFocusDuration }) => {
     // 3) Immediately after the storage read returns:
-    console.log(
-      "[Content] storage.get returned:",
-      { showIntentionPopup, lastIntention, lastFocusDuration }
-    );
+    console.log("[Content] storage.get returned:", {
+      showIntentionPopup,
+      lastIntention,
+      lastFocusDuration,
+    });
 
     if (!showIntentionPopup) {
       console.log("[Content] showIntentionPopup is false → skipping injection");
@@ -36,38 +37,54 @@ chrome.storage.local.get(
     if (!existing) {
       console.log("[Content] injecting floatingPopup.js…");
       const script = document.createElement("script");
-      script.src  = chrome.runtime.getURL("floatingPopup.js");
-      script.id   = "intention-popup-script";
+      script.src = chrome.runtime.getURL("floatingPopup.js");
+      script.id = "intention-popup-script";
       script.type = "module";
 
       script.onload = () => {
-        console.log("[Content] floatingPopup.js loaded, posting INIT_INTENTION_DATA", {
-          lastIntention, lastFocusDuration
-        });
-        window.postMessage({
-          type: "INIT_INTENTION_DATA",
-          payload: { lastIntention, lastFocusDuration }
-        }, "*");
+        console.log(
+          "[Content] floatingPopup.js loaded, posting INIT_INTENTION_DATA",
+          {
+            lastIntention,
+            lastFocusDuration,
+          }
+        );
+        window.postMessage(
+          {
+            type: "INIT_INTENTION_DATA",
+            payload: { lastIntention, lastFocusDuration },
+          },
+          "*"
+        );
       };
 
       document.body.appendChild(script);
     }
   }
 );
-
 // 2) **New: schedule the timer in this tab on load**
 chrome.storage.local.get(
   ["focusStart", "focusDuration", "showIntentionPopup"],
   ({ focusStart, focusDuration, showIntentionPopup }) => {
+    const domain = window.location.hostname.replace(/^www\./, "");
+
     if (focusStart && focusDuration && !showIntentionPopup) {
-      const elapsed   = Date.now() - focusStart;
-      const totalMs   = focusDuration * 60 * 1000;
+      const elapsed = Date.now() - focusStart;
+      const totalMs = focusDuration * 60 * 1000;
       const remaining = totalMs - elapsed;
 
       if (remaining > 0) {
-        console.log(`[Content] Scheduling re-popup in ${remaining}ms`);
+        console.log(`[Content] Scheduling re-popup for ${domain} in ${remaining}ms`);
+
         setTimeout(() => {
-          window.dispatchEvent(new CustomEvent("show-popup-again"));
+          const currentDomain = window.location.hostname.replace(/^www\./, "");
+
+          if (currentDomain === domain) {
+            console.log(`[Content] Timer expired for ${domain} → showing popup`);
+            window.dispatchEvent(new CustomEvent("show-popup-again"));
+          } else {
+            console.log(`[Content] Ignored timer for ${domain} on ${currentDomain}`);
+          }
         }, remaining);
       } else {
         console.log("[Content] Timer already expired — showing popup now");
@@ -77,11 +94,13 @@ chrome.storage.local.get(
   }
 );
 
+
 // 5) In your show-popup-again listener, to see if you ever get this event:
 window.addEventListener("show-popup-again", () => {
-  console.log("[Content] show-popup-again event fired, attempting reinjection…");
+  console.log(
+    "[Content] show-popup-again event fired, attempting reinjection…"
+  );
 });
-
 
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let isBlurEnabled = true;
@@ -97,7 +116,6 @@ window.addEventListener("message", (event) => {
     window.dispatchEvent(customEvent);
   }
 
- 
   if (event.data.type === "STORE_FOCUS_DATA") {
     const { focusStart, focusDuration, focusIntention } = event.data.payload;
     chrome.storage.local.set(
@@ -107,18 +125,20 @@ window.addEventListener("message", (event) => {
         focusIntention,
         showIntentionPopup: false,
         lastIntention: focusIntention,
-        lastFocusDuration: focusDuration
+        lastFocusDuration: focusDuration,
       },
       () => {
         console.log("✅ Stored focus session & hid popup permanently");
 
         // ─── schedule the popup in this tab right now ───
-        const elapsed   = Date.now() - focusStart;
-        const totalMs   = focusDuration * 60 * 1000;
+        const elapsed = Date.now() - focusStart;
+        const totalMs = focusDuration * 60 * 1000;
         const remaining = totalMs - elapsed;
 
         if (remaining > 0) {
-          console.log(`[Content] [STORE] Scheduling re-popup in ${remaining}ms`);
+          console.log(
+            `[Content] [STORE] Scheduling re-popup in ${remaining}ms`
+          );
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent("show-popup-again"));
           }, remaining);
@@ -129,7 +149,6 @@ window.addEventListener("message", (event) => {
       }
     );
   }
-
 });
 
 for (const selector of selectorsToHide) {
@@ -138,8 +157,11 @@ for (const selector of selectorsToHide) {
 }
 
 const blurTopSubscriptionsMenu = () => {
-  const subLink = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
-    .find(el => el.textContent?.trim().toLowerCase() === "subscriptions") as HTMLElement | undefined;
+  const subLink = Array.from(
+    document.querySelectorAll("ytd-guide-entry-renderer")
+  ).find((el) => el.textContent?.trim().toLowerCase() === "subscriptions") as
+    | HTMLElement
+    | undefined;
 
   if (subLink) {
     subLink.style.filter = "blur(6px)";
@@ -150,8 +172,11 @@ const blurTopSubscriptionsMenu = () => {
 };
 
 const unblurTopSubscriptionsMenu = () => {
-  const subLink = Array.from(document.querySelectorAll("ytd-guide-entry-renderer"))
-    .find(el => el.textContent?.trim().toLowerCase() === "subscriptions") as HTMLElement | undefined;
+  const subLink = Array.from(
+    document.querySelectorAll("ytd-guide-entry-renderer")
+  ).find((el) => el.textContent?.trim().toLowerCase() === "subscriptions") as
+    | HTMLElement
+    | undefined;
 
   if (subLink) {
     subLink.style.filter = "none";
@@ -162,8 +187,11 @@ const unblurTopSubscriptionsMenu = () => {
 };
 
 const blurLeftIconSubscriptions = () => {
-  const miniSub = Array.from(document.querySelectorAll("ytd-mini-guide-entry-renderer"))
-    .find(el => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions") as HTMLElement | undefined;
+  const miniSub = Array.from(
+    document.querySelectorAll("ytd-mini-guide-entry-renderer")
+  ).find(
+    (el) => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions"
+  ) as HTMLElement | undefined;
 
   if (miniSub) {
     miniSub.style.filter = "blur(6px)";
@@ -176,8 +204,11 @@ const blurLeftIconSubscriptions = () => {
 };
 
 const unblurLeftIconSubscriptions = () => {
-  const miniSub = Array.from(document.querySelectorAll("ytd-mini-guide-entry-renderer"))
-    .find(el => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions") as HTMLElement | undefined;
+  const miniSub = Array.from(
+    document.querySelectorAll("ytd-mini-guide-entry-renderer")
+  ).find(
+    (el) => el.getAttribute("aria-label")?.toLowerCase() === "subscriptions"
+  ) as HTMLElement | undefined;
 
   if (miniSub) {
     miniSub.style.filter = "";
@@ -290,7 +321,7 @@ const applyBlurToSections = () => {
     }
   });
   blurTopSubscriptionsMenu();
-  blurLeftIconSubscriptions(); 
+  blurLeftIconSubscriptions();
 };
 
 const blurChipsBar = () => {
@@ -318,8 +349,10 @@ const removeBlur = () => {
     elem.style.pointerEvents = "";
     elem.style.userSelect = "";
   });
-  
-  const chips = document.querySelector("ytd-feed-filter-chip-bar-renderer") as HTMLElement | null;
+
+  const chips = document.querySelector(
+    "ytd-feed-filter-chip-bar-renderer"
+  ) as HTMLElement | null;
   if (chips) {
     chips.style.filter = "";
     chips.style.pointerEvents = "";
@@ -349,14 +382,14 @@ const applyBlurImmediately = () => {
 const sidebarObserver = new MutationObserver(() => {
   chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
     if (blurEnabled) applyBlurToSections();
-    else removeBlur();  // optional cleanup
+    else removeBlur(); // optional cleanup
   });
 });
 
 const chipsObserver = new MutationObserver(() => {
   chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
     if (blurEnabled) blurChipsBar();
-    else removeBlur();  // if such a function exists
+    else removeBlur(); // if such a function exists
   });
 });
 const shortsmenuObserver = new MutationObserver(() => {
@@ -455,24 +488,21 @@ window.addEventListener("message", (event) => {
   // NEW: Save focus data to chrome.storage.local
   if (event.data.type === "STORE_FOCUS_DATA") {
     const { focusStart, focusDuration, focusIntention } = event.data.payload;
-    const domain = window.location.hostname;
-console.log(`domain: ${domain}`);
-    // Fetch existing focus data
+    const domain = window.location.hostname.replace(/^www\./, "");
+    console.log(`[STORE_FOCUS_DATA] domain: ${domain}`);
+
     chrome.storage.local.get(["focusData"], (result) => {
       const focusData = result.focusData || {};
 
-      // Save new data under domain key
       focusData[domain] = {
         focusStart,
         focusDuration,
         focusIntention,
       };
 
-      // Store updated focusData
       chrome.storage.local.set({ focusData }, () => {
-        console.log(
-          `Stored focus session for ${domain} in chrome.storage.local`
-        );
+        console.log(`✅ Stored focus session for ${domain}`);
+        console.log("focusData is now:", focusData);
       });
     });
   }
@@ -492,9 +522,11 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
     subtree: true,
   });
   shortspageObserver.observe(document.body, { childList: true, subtree: true });
-  subscriptionsMenuObserver.observe(document.body, { childList: true, subtree: true });
+  subscriptionsMenuObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
   miniGuideObserver.observe(document.body, { childList: true, subtree: true });
-
 });
 
 // Blur comments
@@ -559,23 +591,25 @@ window.addEventListener("show-popup-again", () => {
 
       // inject the popup script
       const script = document.createElement("script");
-      script.src  = chrome.runtime.getURL("floatingPopup.js");
-      script.id   = "intention-popup-script";
+      script.src = chrome.runtime.getURL("floatingPopup.js");
+      script.id = "intention-popup-script";
       script.type = "module";
 
       script.onload = () => {
         // send it its saved data
-        window.postMessage({
-          type: "INIT_INTENTION_DATA",
-          payload: { lastIntention, lastFocusDuration },
-        }, "*");
+        window.postMessage(
+          {
+            type: "INIT_INTENTION_DATA",
+            payload: { lastIntention, lastFocusDuration },
+          },
+          "*"
+        );
       };
 
       document.body.appendChild(script);
     }
   );
 });
-
 
 function applyShortsToggle(shouldBlur: boolean) {
   if (shouldBlur) {

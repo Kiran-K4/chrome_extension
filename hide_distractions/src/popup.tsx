@@ -132,32 +132,35 @@ const App = () => {
     const s = (seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
+const mainView = (
+  <div className="main-view">
+    <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+    <h1 className="popup-title">Focus Bear</h1>
 
-  const mainView = (
-    <div>
-      <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">Focus Bear</h1>
+    {Object.keys(allFocusSessions).length > 0 ? (
+      <div className="session-list">
+        {Object.entries(allFocusSessions).map(([domain, session]) => (
+          <div key={domain} className="session-card">
+            <strong className="domain">{domain}</strong><br />
+            <span className="label">Time Left:</span> {formatTime(session.timeLeft)}<br />
+            <span className="label">Intention:</span> {session.intention}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="no-session">No active focus session.</p>
+    )}
 
-      {timerActive ? (
-        <div className="timer-section">
-          <strong>Time Left:</strong> <span>{formatTime(timeLeft)}</span>
-          <strong>Intention:</strong> <span>{intention}</span><br/>
-        </div>
-      ) : (
-        <p className="no-session">No active focus session.</p>
-      )}
+    <img
+      src={setIcon}
+      alt="Settings Icon"
+      className="settings-icon"
+      onClick={() => setShowSettings(true)}
+    />
+  </div>
+);
 
-      <img src={setIcon} alt="Settings Icon" className="settings-icon"
-        onClick={() => {
-          if (timerActive) {
-            alert("Settings cannot be configured during a session");
-          } else {
-            setShowSettings(true);
-          }
-        }}
-      />
-    </div>
-  );
+
 
   const settingsView = (
     <div>
