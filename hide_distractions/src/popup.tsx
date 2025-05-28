@@ -21,6 +21,7 @@ const Toggle = ({
 );
 
 const App = () => {
+  const t = (key: string) => chrome.i18n.getMessage(key); // i18n helper
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
@@ -189,10 +190,11 @@ const App = () => {
     const s = (seconds % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
+
   const mainView = (
     <div className="main-view">
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">Focus Bear</h1>
+      <h1 className="popup-title">{t("youtube_label")}</h1>
 
       {Object.keys(allFocusSessions).length > 0 ? (
         <div className="session-list">
@@ -200,15 +202,15 @@ const App = () => {
             <div key={domain} className="session-card">
               <strong className="domain">{domain}</strong>
               <br />
-              <span className="label">Time Left:</span>{" "}
+              <span className="label">{t("time_left")}</span>{" "}
               {formatTime(session.timeLeft)}
               <br />
-              <span className="label">Intention:</span> {session.intention}
+              <span className="label">{t("intention_label")}</span> {session.intention}
             </div>
           ))}
         </div>
       ) : (
-        <p className="no-session">No active focus session.</p>
+        <p className="no-session">{t("no_focus_session")}</p>
       )}
 
       <img
@@ -226,7 +228,7 @@ const App = () => {
       />
       {settingsBlockedMessage && (
         <p className="settings-warning">
-          ⚠️ Settings cannot be configured during an active session.
+          {t("settings_locked_during_session")}
         </p>
       )}
     </div>
@@ -238,19 +240,19 @@ const App = () => {
       <h2 className="settings-title">Settings</h2>
       <div className="options-container">
         <label className="option-label">
-          <span className="option-text">Blur Home Page</span>
+          <span className="option-text">{t("blur_home")}</span>
           <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
         </label>
         <label className="option-label">
-          <span className="option-text">Blur Distractions</span>
+          <span className="option-text">{t("blur_distractions")}</span>
           <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
         </label>
         <label className="option-label">
-          <span className="option-text">Hide Comments</span>
+          <span className="option-text">{t("hide_comments")}</span>
           <Toggle checked={hidden} onChange={handleCommentsToggle} />
         </label>
         <label className="option-label">
-          <span className="option-text">Blur Shorts</span>
+          <span className="option-text">{t("blur_shorts")}</span>
           <Toggle
             checked={shortsBlurEnabled}
             onChange={handleShortsBlurToggle}
