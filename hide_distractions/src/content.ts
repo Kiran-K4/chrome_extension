@@ -1,3 +1,5 @@
+// content.ts — updated with domain-scoped session re-popup logic
+
 console.log("Content script injected");
 
 const COMMENT_BLUR_ID = "focus-bear-comment-blur-style";
@@ -6,16 +8,13 @@ const selectorsToHide = [
   "ytd-item-section-renderer[static-comments-header]",
   "#continuations",
   ".sidebar",
-  // 'ytd-watch-next-secondary-results-renderer'
 ];
 
-// Inject floatingPopup if not already present
-// 1) At the very top, to confirm the script is running and on which page:
 console.log("[Content] script loaded at URL:", location.href);
 
 const domain = window.location.hostname.replace(/^www\./, "");
 
-// 1. Inject popup on first visit if no domain session exists
+// Inject popup on first visit if no domain session exists
 chrome.storage.local.get(["focusData"], ({ focusData }) => {
   const session = focusData?.[domain];
   if (!session) {
@@ -26,63 +25,47 @@ chrome.storage.local.get(["focusData"], ({ focusData }) => {
       script.id = "intention-popup-script";
       script.type = "module";
       script.onload = () => {
-        window.postMessage(
-          {
-            type: "INIT_INTENTION_DATA",
-            payload: {
-              lastIntention: "",
-              lastFocusDuration: 0,
-            },
+        window.postMessage({
+          type: "INIT_INTENTION_DATA",
+          payload: {
+            lastIntention: "",
+            lastFocusDuration: 0,
           },
-          "*"
-        );
+        }, "*");
       };
       document.body.appendChild(script);
     }
   } else {
-    console.log(
-      `[Content] Session already exists for ${domain}, no popup needed.`
-    );
+    console.log(`[Content] Session already exists for ${domain}, no popup needed.`);
   }
 });
 
-// 2) **New: schedule the timer in this tab on load**
-chrome.storage.local.get(
-  ["focusStart", "focusDuration", "showIntentionPopup"],
-  ({ focusStart, focusDuration, showIntentionPopup }) => {
-    const domain = window.location.hostname.replace(/^www\./, "");
+// Domain-specific timer scheduling
+chrome.storage.local.get(["focusData"], ({ focusData }) => {
+  const session = focusData?.[domain];
 
-    if (focusStart && focusDuration && !showIntentionPopup) {
-      const elapsed = Date.now() - focusStart;
-      const totalMs = focusDuration * 60 * 1000;
-      const remaining = totalMs - elapsed;
+  if (session?.focusStart && session?.focusDuration) {
+    const elapsed = Date.now() - session.focusStart;
+    const totalMs = session.focusDuration * 60 * 1000;
+    const remaining = totalMs - elapsed;
 
-      if (remaining > 0) {
-        console.log(
-          `[Content] Scheduling re-popup for ${domain} in ${remaining}ms`
-        );
-
-        setTimeout(() => {
-          const currentDomain = window.location.hostname.replace(/^www\./, "");
-
-          if (currentDomain === domain) {
-            console.log(
-              `[Content] Timer expired for ${domain} → showing popup`
-            );
-            window.dispatchEvent(new CustomEvent("show-popup-again"));
-          } else {
-            console.log(
-              `[Content] Ignored timer for ${domain} on ${currentDomain}`
-            );
-          }
-        }, remaining);
-      } else {
-        console.log("[Content] Timer already expired — showing popup now");
-        window.dispatchEvent(new CustomEvent("show-popup-again"));
-      }
+    if (remaining > 0) {
+      console.log(`[Content] [${domain}] Scheduling re-popup in ${remaining}ms`);
+      setTimeout(() => {
+        const currentDomain = window.location.hostname.replace(/^www\./, "");
+        if (currentDomain === domain) {
+          console.log(`[Content] [${domain}] Timer expired → showing popup`);
+          window.dispatchEvent(new CustomEvent("show-popup-again"));
+        } else {
+          console.log(`[Content] Skipping popup: tab is on ${currentDomain}, not ${domain}`);
+        }
+      }, remaining);
+    } else {
+      console.log(`[Content] [${domain}] Timer already expired — showing popup now`);
+      window.dispatchEvent(new CustomEvent("show-popup-again"));
     }
   }
-);
+});
 
 // 5) In your show-popup-again listener, to see if you ever get this event:
 window.addEventListener("show-popup-again", () => {
