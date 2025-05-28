@@ -20,6 +20,17 @@ chrome.runtime.onStartup.addListener(() => {
  * Bring _all_ your flags back to true (or your chosen defaults).
  */
 function resetDefaults() {
+  chrome.storage.local.remove([
+    "focusStart",
+    "focusDuration",
+    "focusIntention",
+    "lastIntention",
+    "lastFocusDuration",
+    "focusData"
+  ], () => {
+    console.log("Cleared focus session data");
+  });
+  
   chrome.storage.local.set({
     showIntentionPopup:     true,   // The “first-run” gate
     blurEnabled:            true,
