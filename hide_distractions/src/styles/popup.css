@@ -154,7 +154,7 @@ button.close-button:disabled {
 
 /* Individual Session Card */
 .session-card {
-  background-color: #fff8ef;
+  background-color: #FFFCF6;
   border: 1px solid #e0b991;
   border-radius: 8px;
   padding: 10px 14px;
@@ -181,14 +181,16 @@ button.close-button:disabled {
 img.settings-icon {
   z-index: 10;
 }
+
 .settings-warning {
-  margin-top: 10px;
+  max-width: 75%;
+  margin: 10px auto;
   text-align: center;
-  color: #a94442;
-  background: #fff3cd;
+  color: #990000;
+  background: #FFFCF6;
   font-weight: bold;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 14px;
-  border: 1px solid #f5c6cb;
+  border: 1px solid #F3A650;
 }
