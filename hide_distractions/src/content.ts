@@ -26,18 +26,23 @@ chrome.storage.local.get(["focusData"], ({ focusData }) => {
       script.id = "intention-popup-script";
       script.type = "module";
       script.onload = () => {
-        window.postMessage({
-          type: "INIT_INTENTION_DATA",
-          payload: {
-            lastIntention: "",
-            lastFocusDuration: 0,
+        window.postMessage(
+          {
+            type: "INIT_INTENTION_DATA",
+            payload: {
+              lastIntention: "",
+              lastFocusDuration: 0,
+            },
           },
-        }, "*");
+          "*"
+        );
       };
       document.body.appendChild(script);
     }
   } else {
-    console.log(`[Content] Session already exists for ${domain}, no popup needed.`);
+    console.log(
+      `[Content] Session already exists for ${domain}, no popup needed.`
+    );
   }
 });
 
@@ -53,16 +58,22 @@ chrome.storage.local.get(
       const remaining = totalMs - elapsed;
 
       if (remaining > 0) {
-        console.log(`[Content] Scheduling re-popup for ${domain} in ${remaining}ms`);
+        console.log(
+          `[Content] Scheduling re-popup for ${domain} in ${remaining}ms`
+        );
 
         setTimeout(() => {
           const currentDomain = window.location.hostname.replace(/^www\./, "");
 
           if (currentDomain === domain) {
-            console.log(`[Content] Timer expired for ${domain} → showing popup`);
+            console.log(
+              `[Content] Timer expired for ${domain} → showing popup`
+            );
             window.dispatchEvent(new CustomEvent("show-popup-again"));
           } else {
-            console.log(`[Content] Ignored timer for ${domain} on ${currentDomain}`);
+            console.log(
+              `[Content] Ignored timer for ${domain} on ${currentDomain}`
+            );
           }
         }, remaining);
       } else {
@@ -72,7 +83,6 @@ chrome.storage.local.get(
     }
   }
 );
-
 
 // 5) In your show-popup-again listener, to see if you ever get this event:
 window.addEventListener("show-popup-again", () => {
@@ -119,7 +129,20 @@ window.addEventListener("message", (event) => {
             `[Content] [STORE] Scheduling re-popup in ${remaining}ms`
           );
           setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("show-popup-again"));
+            const currentDomain = window.location.hostname.replace(
+              /^www\./,
+              ""
+            );
+            if (currentDomain === domain) {
+              console.log(
+                `[STORE] Timer expired for ${domain} → showing popup`
+              );
+              window.dispatchEvent(new CustomEvent("show-popup-again"));
+            } else {
+              console.log(
+                `[STORE] Timer expired for ${domain}, but user is on ${currentDomain} → ignoring`
+              );
+            }
           }, remaining);
         } else {
           console.log("[Content] [STORE] Timer already expired; showing now");
