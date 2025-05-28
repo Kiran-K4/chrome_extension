@@ -1,5 +1,3 @@
-// content.ts — updated with domain-scoped session re-popup logic
-
 console.log("Content script injected");
 
 const COMMENT_BLUR_ID = "focus-bear-comment-blur-style";
@@ -8,6 +6,7 @@ const selectorsToHide = [
   "ytd-item-section-renderer[static-comments-header]",
   "#continuations",
   ".sidebar",
+  // 'ytd-watch-next-secondary-results-renderer'
 ];
 
 console.log("[Content] script loaded at URL:", location.href);
@@ -74,6 +73,39 @@ window.addEventListener("show-popup-again", () => {
   );
 });
 
+const translations = {
+  heading: chrome.i18n.getMessage("heading"),
+  prompt: chrome.i18n.getMessage("prompt"),
+  placeholder: chrome.i18n.getMessage("placeholder"),
+  warning: chrome.i18n.getMessage("warning"),
+  duration: chrome.i18n.getMessage("duration"),
+  button: chrome.i18n.getMessage("button"),
+  time_default: chrome.i18n.getMessage("time_default"),
+  minute_1: chrome.i18n.getMessage("minute_1"),
+  minute_5: chrome.i18n.getMessage("minute_5"),
+  minute_10: chrome.i18n.getMessage("minute_10"),
+  minute_15: chrome.i18n.getMessage("minute_15"),
+  minute_30: chrome.i18n.getMessage("minute_30"),
+};
+
+// Send translations initially
+window.postMessage({
+  type: "FOCUSBEAR_TRANSLATIONS",
+  payload: translations
+}, "*");
+console.log("[FocusBear] Translation message sent");
+
+// Respond if popup requests translations again
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "REQUEST_TRANSLATIONS") {
+    console.log("[FocusBear] Popup requested translations, resending...");
+    window.postMessage({
+      type: "FOCUSBEAR_TRANSLATIONS",
+      payload: translations
+    }, "*");
+  }
+});
+
 let focusTimer: ReturnType<typeof setTimeout> | null = null;
 let isBlurEnabled = true;
 
@@ -82,9 +114,7 @@ window.addEventListener("message", (event) => {
 
   if (event.data.type === "SAVE_INTENTION") {
     const intention = event.data.payload;
-    const customEvent = new CustomEvent("intention-saved", {
-      detail: intention,
-    });
+    const customEvent = new CustomEvent("intention-saved", { detail: intention });
     window.dispatchEvent(customEvent);
   }
 
@@ -100,7 +130,7 @@ window.addEventListener("message", (event) => {
         lastFocusDuration: focusDuration,
       },
       () => {
-        console.log("✅ Stored focus session & hid popup permanently");
+        console.log("Stored focus session & hid popup permanently");
 
         // ─── schedule the popup in this tab right now ───
         const elapsed = Date.now() - focusStart;
