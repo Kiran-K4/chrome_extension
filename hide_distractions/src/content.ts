@@ -13,55 +13,34 @@ const selectorsToHide = [
 // 1) At the very top, to confirm the script is running and on which page:
 console.log("[Content] script loaded at URL:", location.href);
 
-// 2) Before you even call storage.get:
-console.log("[Content] about to read showIntentionPopup flag…");
-chrome.storage.local.get(
-  { showIntentionPopup: true, lastIntention: "", lastFocusDuration: 0 },
-  ({ showIntentionPopup, lastIntention, lastFocusDuration }) => {
-    // 3) Immediately after the storage read returns:
-    console.log("[Content] storage.get returned:", {
-      showIntentionPopup,
-      lastIntention,
-      lastFocusDuration,
-    });
+const domain = window.location.hostname.replace(/^www\./, "");
 
-    if (!showIntentionPopup) {
-      console.log("[Content] showIntentionPopup is false → skipping injection");
-      return;
-    }
-
-    // 4) Check for an existing script tag:
-    const existing = !!document.getElementById("intention-popup-script");
-    console.log("[Content] intention-popup-script already on page?", existing);
-
-    if (!existing) {
-      console.log("[Content] injecting floatingPopup.js…");
+// 1. Inject popup on first visit if no domain session exists
+chrome.storage.local.get(["focusData"], ({ focusData }) => {
+  const session = focusData?.[domain];
+  if (!session) {
+    console.log(`[Content] No session found for ${domain}, injecting popup`);
+    if (!document.getElementById("intention-popup-script")) {
       const script = document.createElement("script");
       script.src = chrome.runtime.getURL("floatingPopup.js");
       script.id = "intention-popup-script";
       script.type = "module";
-
       script.onload = () => {
-        console.log(
-          "[Content] floatingPopup.js loaded, posting INIT_INTENTION_DATA",
-          {
-            lastIntention,
-            lastFocusDuration,
-          }
-        );
-        window.postMessage(
-          {
-            type: "INIT_INTENTION_DATA",
-            payload: { lastIntention, lastFocusDuration },
+        window.postMessage({
+          type: "INIT_INTENTION_DATA",
+          payload: {
+            lastIntention: "",
+            lastFocusDuration: 0,
           },
-          "*"
-        );
+        }, "*");
       };
-
       document.body.appendChild(script);
     }
+  } else {
+    console.log(`[Content] Session already exists for ${domain}, no popup needed.`);
   }
-);
+});
+
 // 2) **New: schedule the timer in this tab on load**
 chrome.storage.local.get(
   ["focusStart", "focusDuration", "showIntentionPopup"],
