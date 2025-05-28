@@ -22,6 +22,7 @@ const Toggle = ({
 
 const App = () => {
   const t = (key: string) => chrome.i18n.getMessage(key); // i18n helper
+  const t = (key: string) => chrome.i18n.getMessage(key); // i18n helper
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
@@ -191,10 +192,11 @@ const App = () => {
     return `${m}:${s}`;
   };
 
+
   const mainView = (
     <div className="main-view">
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">{t("settings_label")}</h1>
+      <h1 className="popup-title">{t("youtube_label")}</h1>
 
       {Object.keys(allFocusSessions).length > 0 ? (
         <div className="session-list">
@@ -229,6 +231,7 @@ const App = () => {
       {settingsBlockedMessage && (
         <p className="settings-warning">
           {t("settings_locked_during_session")}
+          {t("settings_locked_during_session")}
         </p>
       )}
     </div>
@@ -244,6 +247,7 @@ const App = () => {
           <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
         </label>
         <label className="option-label">
+          <span className="option-text">{t("blur_distractions")}</span>
           <span className="option-text">{t("blur_distractions")}</span>
           <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
         </label>
@@ -277,3 +281,4 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <App />
   </React.StrictMode>
 );
+

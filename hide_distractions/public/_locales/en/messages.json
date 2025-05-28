@@ -1,7 +1,7 @@
 {
-  "settings_label": {
-    "message": "Settings",
-    "description": "Label for the settings section of the extension"
+  "youtube_label": {
+    "message": "YouTube",
+    "description": "Label for YouTube settings section"
   },
   "blur_home": {
     "message": "Blur Home Page",
@@ -83,4 +83,5 @@
   "message": "⚠️ Settings cannot be configured during an active session.",
   "description": "Alert shown when trying to open settings during a focus session"
  }
+
 }
