@@ -15,8 +15,10 @@
     "service_worker": "background.js"
   },
   "content_scripts": [
-    {
-      "matches": ["*://*.youtube.com/*"],
+    {"matches": [
+      "https://www.youtube.com/*",
+      "https://www.linkedin.com/*"  
+    ],
       "js": ["content.js", "homePageBlur.js"],
       "css": ["assets/intentionPopup.css"]
     }
