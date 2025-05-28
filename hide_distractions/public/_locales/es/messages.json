@@ -62,6 +62,6 @@
   },
   "settings_locked_during_session": 
   {
-  "message": "No se pueden configurar los ajustes durante una sesión"
+  "message": "⚠️ No se pueden configurar los ajustes durante una sesión"
   }
 }

@@ -80,7 +80,7 @@
   },
   "settings_locked_during_session": 
   {
-  "message": "Settings cannot be configured during a session",
+  "message": "⚠️ Settings cannot be configured during an active session.",
   "description": "Alert shown when trying to open settings during a focus session"
  }
 

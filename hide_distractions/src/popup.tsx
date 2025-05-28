@@ -241,13 +241,13 @@ const App = () => {
       />
       {settingsBlockedMessage && (
         <p className="settings-warning">
-          {t("settings_locked_during_session")};
+          {t("settings_locked_during_session")}
         </p>
       )}
     </div>
   );
 
-  const settingsView = (
+   const settingsView = (
     <div>
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
       <h2 className="settings-title">Settings</h2>
@@ -272,18 +272,12 @@ const App = () => {
           />
         </label>
       </div>
-
-      {timerActive ? (
-        <div style={{ marginTop: 20 }}>
-          <strong>{t("intention_label")}:</strong> <span>{intention}</span>
-          <br />
-          <strong>{t("time_left")}:</strong> <span>{formatTime(timeLeft)}</span>
-        </div>
-      ) : (
-        <p style={{ marginTop: 20 }}>{t("no_focus_session")}</p>
-      )}
+      <button className="close-button" onClick={() => setShowSettings(false)}>
+        Close
+      </button>
     </div>
   );
+
   return (
     <div className="popup-container">
       {showSettings ? settingsView : mainView}
