@@ -1,6 +1,6 @@
 {
-  "youtube_label": {
-    "message": "YouTube"
+  "settings_label": {
+    "message": "Configuración"  
   },
   "blur_home": {
     "message": "Difuminar página principal"
