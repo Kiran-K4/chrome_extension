@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import { IntentionProvider } from "./context/intentionPopupContext";
-import { useFocusTimer } from "./hooks/useFocusTimer";
 import "./styles/popup.css";
 import iconUrl from "../public/icons/bearLogo.png";
 import setIcon from "../public/icons/settingsIcon.png";
@@ -21,14 +19,6 @@ const Toggle = ({
     <div className="toggle-button" />
   </div>
 );
-
-const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60)
-    .toString()
-    .padStart(2, "0");
-  const s = (seconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
-};
 
 const App = () => {
   const t = (key: string) => chrome.i18n.getMessage(key); // i18n helper

@@ -18,8 +18,7 @@ export default defineConfig({
         popup: resolve(__dirname, 'src/popup.html'),
         background: resolve(__dirname, 'src/background.ts'),
         content: resolve(__dirname, 'src/content.ts'),
-        homePageBlur: resolve(__dirname, 'src/homePageBlur.ts'),
-        linkedin: resolve(__dirname, 'src/linkedin.ts')
+        homePageBlur: resolve(__dirname, 'src/youtube/homePageBlur.ts')
       },
       output: {
         entryFileNames: '[name].js'
