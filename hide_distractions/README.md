@@ -29,8 +29,6 @@ These instructions will help you get a local copy of the project up and running 
 
 2. Install dependencies
     - npm install
-    - npm install --save-dev shx
-    - npm install --save-dev cpx
 
 3. Build the extension (Generates dist/ folder and contents)
     - npm run build
