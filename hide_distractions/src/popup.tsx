@@ -26,6 +26,7 @@ const App = () => {
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
+  const [blurLinkedInJobs, setBlurLinkedInJobs] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
@@ -51,39 +52,20 @@ const App = () => {
         "commentsHidden",
         "homePageBlurEnabled",
         "shortsBlurEnabled",
+        "blurLinkedInJobs",
       ],
       ({
         blurEnabled,
         commentsHidden,
         homePageBlurEnabled,
         shortsBlurEnabled,
+        blurLinkedInJobs,
       }) => {
         setBlurEnabled(blurEnabled ?? true);
         setHidden(commentsHidden ?? true);
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
         setShortsBlurEnabled(shortsBlurEnabled ?? true);
-      }
-    );
-  }, []);
-
-  // Live session timer update
-  useEffect(() => {
-    chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
-      setBlurEnabled(blurEnabled);
-    });
-    chrome.storage.local.get({ commentsHidden: true }, ({ commentsHidden }) => {
-      setHidden(commentsHidden);
-    });
-    chrome.storage.local.get(
-      { homePageBlurEnabled: true },
-      ({ homePageBlurEnabled }) => {
-        setHomeBlurEnabled(homePageBlurEnabled);
-      }
-    );
-    chrome.storage.local.get(
-      { shortsBlurEnabled: true },
-      ({ shortsBlurEnabled }) => {
-        setShortsBlurEnabled(shortsBlurEnabled);
+        setBlurLinkedInJobs(blurLinkedInJobs ?? true);
       }
     );
   }, []);
@@ -116,9 +98,8 @@ const App = () => {
       });
     };
 
-    console.log("sessions", allFocusSessions);
-    updateSessions(); // first load
-    const interval = setInterval(updateSessions, 1000); // update every second
+    updateSessions();
+    const interval = setInterval(updateSessions, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -183,6 +164,22 @@ const App = () => {
     }
   };
 
+  const handleLinkedInJobsToggle = async () => {
+    const newValue = !blurLinkedInJobs;
+    setBlurLinkedInJobs(newValue);
+    chrome.storage.local.set({ blurLinkedInJobs: newValue });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_LINKEDIN_JOBS_BLUR",
+        payload: newValue,
+      });
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -220,7 +217,7 @@ const App = () => {
         onClick={() => {
           if (currentDomain && allFocusSessions[currentDomain]) {
             setSettingsBlockedMessage(true);
-            setTimeout(() => setSettingsBlockedMessage(false), 3000); // hide after 3 sec
+            setTimeout(() => setSettingsBlockedMessage(false), 3000);
           } else {
             setShowSettings(true);
           }
@@ -256,6 +253,13 @@ const App = () => {
           <Toggle
             checked={shortsBlurEnabled}
             onChange={handleShortsBlurToggle}
+          />
+        </label>
+        <label className="option-label">
+          <span className="option-text">Blur LinkedIn Jobs</span>
+          <Toggle
+            checked={blurLinkedInJobs}
+            onChange={handleLinkedInJobsToggle}
           />
         </label>
       </div>

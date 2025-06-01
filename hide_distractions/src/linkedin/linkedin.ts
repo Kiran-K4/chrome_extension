@@ -1,7 +1,7 @@
 console.log("[LinkedIn] Content script injected");
 
 const JOBS_ICON_SELECTOR = '[data-test-global-nav-link="jobs"]';
-let isLinkedInBlurEnabled = true; // 🛠 Renamed to avoid conflict
+let isLinkedInBlurEnabled = true; 
 
 const blurJobsIcon = () => {
   const jobsIcon = document.querySelector(JOBS_ICON_SELECTOR) as HTMLElement | null;

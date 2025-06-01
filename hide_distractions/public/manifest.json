@@ -15,14 +15,15 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {"matches": [
-      "https://www.youtube.com/*",
-      "https://www.linkedin.com/*"  
-    ],
+   "content_scripts": [
+    {"matches": ["https://www.youtube.com/*" ],
       "js": ["content.js", "homePageBlur.js"],
       "css": ["assets/intentionPopup.css"]
-    }
+    },
+    {
+    "matches": ["https://www.linkedin.com/*"],
+    "js": ["linkedin.js"]
+  }
   ],
   "web_accessible_resources": [
     {
