@@ -6,9 +6,9 @@
   "author": "Kiran Kulkarni",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build" : "vite build",
     "preview": "vite preview",
-    "build" : "tsc"
+    "build": "tsc"
   },
   "dependencies": {
     "react": "^19.0.0",

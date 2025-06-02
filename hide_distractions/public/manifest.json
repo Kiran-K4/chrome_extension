@@ -22,7 +22,8 @@
     },
     {
     "matches": ["https://www.linkedin.com/*"],
-    "js": ["linkedin.js"]
+    "js": ["linkedin.js"],
+    "css": ["assets/intentionPopup.css"]
   }
   ],
   "web_accessible_resources": [
