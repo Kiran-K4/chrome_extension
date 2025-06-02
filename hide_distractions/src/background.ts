@@ -30,5 +30,6 @@ function resetDefaults() {
     commentsHidden:         true,
     homePageBlurEnabled:    true,
     shortsBlurEnabled:      true,
+    linkedinBlurPYMK:       true
   }, () => console.log("Defaults reset on install/startup"));
 }

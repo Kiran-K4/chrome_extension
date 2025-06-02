@@ -26,6 +26,7 @@ const App = () => {
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
+  const [linkedinBlurPYMK, setLinkedinBlurPYMK] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
@@ -51,17 +52,20 @@ const App = () => {
         "commentsHidden",
         "homePageBlurEnabled",
         "shortsBlurEnabled",
+        "linkedinBlurPYMK"
       ],
       ({
         blurEnabled,
         commentsHidden,
         homePageBlurEnabled,
         shortsBlurEnabled,
+        linkedinBlurPYMK
       }) => {
         setBlurEnabled(blurEnabled ?? true);
         setHidden(commentsHidden ?? true);
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
         setShortsBlurEnabled(shortsBlurEnabled ?? true);
+        setLinkedinBlurPYMK(linkedinBlurPYMK ?? true);
       }
     );
   }, []);
@@ -84,6 +88,11 @@ const App = () => {
       { shortsBlurEnabled: true },
       ({ shortsBlurEnabled }) => {
         setShortsBlurEnabled(shortsBlurEnabled);
+      }
+    );
+    chrome.storage.local.get({ linkedinBlurPYMK: true }, 
+      ({ linkedinBlurPYMK }) => {
+        setLinkedinBlurPYMK(linkedinBlurPYMK);
       }
     );
   }, []);
@@ -183,6 +192,20 @@ const App = () => {
     }
   };
 
+  const handleLinkedinBlurToggle = async () => {
+    const newValue = !linkedinBlurPYMK;
+    setLinkedinBlurPYMK(newValue);
+    await chrome.storage.local.set({ linkedinBlurPYMK: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: 'TOGGLE_LINKEDIN_BLUR',
+        payload: newValue
+      });
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -255,8 +278,13 @@ const App = () => {
           <span className="option-text">{t("blur_shorts")}</span>
           <Toggle
             checked={shortsBlurEnabled}
-            onChange={handleShortsBlurToggle}
-          />
+            onChange={handleShortsBlurToggle} />
+        </label>
+        <label className="option-label">
+          <span className="option-text">Blur “People You May Know”</span>
+          <Toggle
+            checked={linkedinBlurPYMK}
+            onChange={handleLinkedinBlurToggle} />
         </label>
       </div>
       <button className="close-button" onClick={() => setShowSettings(false)}>
