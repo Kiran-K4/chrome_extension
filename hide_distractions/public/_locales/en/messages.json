@@ -1,7 +1,7 @@
 {
-  "youtube_label": {
-    "message": "YouTube",
-    "description": "Label for YouTube settings section"
+  "home_title": {
+    "message": "Focus Sessions",
+    "description": "Label for Focus Sessions section"
   },
   "settings_label": {
     "message": "Settings",

@@ -217,7 +217,7 @@ const App = () => {
   const mainView = (
     <div className="main-view">
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">{t("youtube_label")}</h1>
+      <h1 className="popup-title">{t("home_title")}</h1>
 
       {Object.keys(allFocusSessions).length > 0 ? (
         <div className="session-list">
