@@ -651,6 +651,26 @@ const observeUrlChanges = () => {
     if (location.href !== lastUrl) {
       lastUrl = location.href;
 
+      // Check if we're on the home page
+      if (window.location.pathname === '/' || window.location.pathname === '/feed/subscriptions') {
+        chrome.storage.local.get(['homePageBlurEnabled'], ({ homePageBlurEnabled }) => {
+          if (homePageBlurEnabled) {
+            // Apply home page specific blur
+            const homePageElements = document.querySelectorAll('#contents, ytd-rich-grid-renderer');
+            homePageElements.forEach(element => {
+              if (element instanceof HTMLElement) {
+                element.style.filter = 'blur(10px)';
+                element.style.pointerEvents = 'none';
+                element.style.userSelect = 'none';
+              }
+            });
+            
+            // Also blur the chips bar on home page
+            blurChipsBar();
+          }
+        });
+      }
+
       if (isShortsPage() && isBlurEnabled) {
         blurShortsPage();
       }
@@ -659,4 +679,57 @@ const observeUrlChanges = () => {
 
   observer.observe(document.body, { childList: true, subtree: true });
 };
-observeUrlChanges();
+
+// Create a separate observer for dynamic content on home page
+const homePageContentObserver = new MutationObserver(() => {
+  if (window.location.pathname === '/' || window.location.pathname === '/feed/subscriptions') {
+    chrome.storage.local.get(['homePageBlurEnabled'], ({ homePageBlurEnabled }) => {
+      if (homePageBlurEnabled) {
+        const homePageElements = document.querySelectorAll('#contents, ytd-rich-grid-renderer');
+        homePageElements.forEach(element => {
+          if (element instanceof HTMLElement && !element.style.filter) {
+            element.style.filter = 'blur(10px)';
+            element.style.pointerEvents = 'none';
+            element.style.userSelect = 'none';
+          }
+        });
+      }
+    });
+  }
+});
+
+// Start observing home page content changes
+homePageContentObserver.observe(document.body, {
+  childList: true,
+  subtree: true,
+  attributes: true,
+});
+
+// Add this to your existing chrome.runtime.onMessage listener
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "TOGGLE_HOME_PAGE_BLUR") {
+    const shouldBlur = message.payload;
+    if (window.location.pathname === '/' || window.location.pathname === '/feed/subscriptions') {
+      const homePageElements = document.querySelectorAll('#contents, ytd-rich-grid-renderer');
+      homePageElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.filter = shouldBlur ? 'blur(10px)' : 'none';
+          element.style.pointerEvents = shouldBlur ? 'none' : 'auto';
+          element.style.userSelect = shouldBlur ? 'none' : 'auto';
+        }
+      });
+      
+      if (shouldBlur) {
+        blurChipsBar();
+      } else {
+        const chips = document.querySelector('ytd-feed-filter-chip-bar-renderer') as HTMLElement | null;
+        if (chips) {
+          chips.style.filter = '';
+          chips.style.pointerEvents = '';
+          chips.style.userSelect = '';
+        }
+      }
+    }
+  }
+  // ... rest of your existing message handlers ...
+});
