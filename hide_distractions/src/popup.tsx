@@ -217,7 +217,7 @@ const App = () => {
   const mainView = (
     <div className="main-view">
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">{t("settings_label")}</h1>
+      <h1 className="popup-title">{t("youtube_label")}</h1>
 
       {Object.keys(allFocusSessions).length > 0 ? (
         <div className="session-list">
@@ -260,7 +260,7 @@ const App = () => {
   const settingsView = (
     <div>
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h2 className="settings-title">Settings</h2>
+      <h2 className="settings-title">{t("settings_label")}</h2>
       <div className="options-container">
         <label className="option-label">
           <span className="option-text">{t("blur_home")}</span>
@@ -281,14 +281,14 @@ const App = () => {
             onChange={handleShortsBlurToggle} />
         </label>
         <label className="option-label">
-          <span className="option-text">Blur “People You May Know”</span>
+          <span className="option-text">{t("blur_PYMK")}</span>
           <Toggle
             checked={linkedinBlurPYMK}
             onChange={handleLinkedinBlurToggle} />
         </label>
       </div>
       <button className="close-button" onClick={() => setShowSettings(false)}>
-        Close
+        {t("close_button")}
       </button>
     </div>
   );
