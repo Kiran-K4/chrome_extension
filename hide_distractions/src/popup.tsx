@@ -170,14 +170,25 @@ const App = () => {
   const handleHomeBlurToggle = async () => {
     const newValue = !homeBlurEnabled;
     setHomeBlurEnabled(newValue);
-    chrome.storage.local.set({ homePageBlurEnabled: newValue });
+    setBlurEnabled(newValue);
+    
+    chrome.storage.local.set({ 
+      homePageBlurEnabled: newValue,
+      blurEnabled: newValue 
+    });
+    
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
+    
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
         type: "TOGGLE_HOME_PAGE_BLUR",
+        payload: newValue,
+      });
+      chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_BLUR",
         payload: newValue,
       });
     }
@@ -243,10 +254,12 @@ const App = () => {
           <span className="option-text">{t("blur_home")}</span>
           <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
         </label>
-        <label className="option-label">
-          <span className="option-text">{t("blur_distractions")}</span>
-          <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
-        </label>
+        <div style={{ display: 'none' }}>
+          <label className="option-label">
+            <span className="option-text">{t("blur_distractions")}</span>
+            <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
+          </label>
+        </div>
         <label className="option-label">
           <span className="option-text">{t("hide_comments")}</span>
           <Toggle checked={hidden} onChange={handleCommentsToggle} />
