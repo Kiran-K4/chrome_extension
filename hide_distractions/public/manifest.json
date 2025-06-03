@@ -20,8 +20,12 @@
       "https://www.youtube.com/*",
       "https://www.linkedin.com/*"  
     ],
-      "js": ["content.js", "homePageBlur.js"],
+      "js": ["content.js"],
       "css": ["assets/intentionPopup.css"]
+    },
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["youtube.js", "homePageBlur.js"]
     },
     {
       "matches": ["*://*.linkedin.com/*"],

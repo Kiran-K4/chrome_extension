@@ -7,7 +7,7 @@ html, body {
 .popup-container {
   position: relative;
   width: 400px;
-  height: 260px;
+  height: 500px;
   padding: 24px 30px 30px;
   background-color: #FFE4C6;
   font-family: sans-serif;
@@ -55,6 +55,11 @@ img.settings-icon {
   width: 32px;
   height: auto;
   cursor: pointer;
+}
+
+/* Setting group names */
+.settings-label {
+  font-size: 1.25rem;
 }
 
 /* Options list */
@@ -127,7 +132,7 @@ img.settings-icon {
 /* Close button */
 button.close-button {
   display: block;
-  margin: 16px auto 0;
+  margin: 32px auto 0;
   width: 225px;
   padding: 10px 15px;
   font-size: 18px;

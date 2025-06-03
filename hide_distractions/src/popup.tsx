@@ -262,6 +262,7 @@ const App = () => {
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
       <h2 className="settings-title">{t("settings_label")}</h2>
       <div className="options-container">
+        <h3 className="settings-label">YouTube</h3>
         <label className="option-label">
           <span className="option-text">{t("blur_home")}</span>
           <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
@@ -280,6 +281,7 @@ const App = () => {
             checked={shortsBlurEnabled}
             onChange={handleShortsBlurToggle} />
         </label>
+        <h3 className="settings-label">LinkedIn</h3>
         <label className="option-label">
           <span className="option-text">{t("blur_PYMK")}</span>
           <Toggle
