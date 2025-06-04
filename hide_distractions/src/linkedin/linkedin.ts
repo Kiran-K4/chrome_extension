@@ -16,7 +16,6 @@ const togglePYMK = (on: boolean) => {
   });
 };
 
-
 const toggleJobPageSections = (on: boolean) => {
   if (!location.pathname.startsWith("/jobs")) return;
 
@@ -109,7 +108,6 @@ chrome.storage.local.get(
   ({ linkedinBlurPYMK, linkedinBlurJobs }) => {
     togglePYMK(linkedinBlurPYMK);
     toggleJobPageSections(linkedinBlurJobs);
-    blurAllExceptEssentials(linkedinBlurJobs);
   }
 );
 
@@ -123,7 +121,6 @@ new MutationObserver(muts => {
       ({ linkedinBlurPYMK, linkedinBlurJobs }) => {
         togglePYMK(linkedinBlurPYMK);
         toggleJobPageSections(linkedinBlurJobs);
-        blurAllExceptEssentials(linkedinBlurJobs);
       }
     );
   }
@@ -140,7 +137,6 @@ chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
     toggleNews(!!msg.payload);
   if (msg.type === "TOGGLE_LINKEDIN_JOB_BLUR") {
     toggleJobPageSections(!!msg.payload);
-    blurAllExceptEssentials(!!msg.payload);
     sendResponse({ ok: true });
   }
 });
