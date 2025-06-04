@@ -325,6 +325,36 @@ const unblurShortsShelf = () => {
   });
 };
 
+const blurMiniSidebarShorts = () => {
+  const miniShorts = Array.from(
+    document.querySelectorAll("ytd-mini-guide-entry-renderer")
+  ).find((el) =>
+    el.getAttribute("aria-label")?.toLowerCase().includes("shorts")
+  ) as HTMLElement | undefined;
+
+  if (miniShorts) {
+    miniShorts.style.filter = "blur(6px)";
+    miniShorts.style.pointerEvents = "none";
+    miniShorts.style.userSelect = "none";
+    miniShorts.style.background = "transparent";
+  }
+};
+
+const unblurMiniSidebarShorts = () => {
+  const miniShorts = Array.from(
+    document.querySelectorAll("ytd-mini-guide-entry-renderer")
+  ).find((el) =>
+    el.getAttribute("aria-label")?.toLowerCase().includes("shorts")
+  ) as HTMLElement | undefined;
+
+  if (miniShorts) {
+    miniShorts.style.filter = "";
+    miniShorts.style.pointerEvents = "";
+    miniShorts.style.userSelect = "";
+    miniShorts.style.background = "";
+  }
+};
+
 const applyBlurToSections = () => {
   const sections = document.querySelectorAll("ytd-guide-section-renderer");
   sections.forEach((section, index) => {
@@ -390,6 +420,7 @@ const applyBlurImmediately = () => {
   if (isShortsPage()) {
     blurShortsPage();
   }
+  blurMiniSidebarShorts();
   blurTopSubscriptionsMenu();
   blurLeftIconSubscriptions();
 };
@@ -451,6 +482,15 @@ const shortsshelfObserver = new MutationObserver(() => {
     ({ shortsBlurEnabled }) => {
       if (shortsBlurEnabled) blurShortsShelf();
       else unblurShortsShelf();
+    }
+  );
+});
+const shortsMiniSidebarObserver = new MutationObserver(() => {
+  chrome.storage.local.get(
+    { shortsBlurEnabled: true },
+    ({ shortsBlurEnabled }) => {
+      if (shortsBlurEnabled) blurMiniSidebarShorts();
+      else unblurMiniSidebarShorts();
     }
   );
 });
@@ -537,6 +577,10 @@ chrome.storage.local.get({ blurEnabled: true }, ({ blurEnabled }) => {
     subtree: true,
   });
   shortspageObserver.observe(document.body, { childList: true, subtree: true });
+  shortsMiniSidebarObserver.observe(document.body, {
+  childList: true,
+  subtree: true,
+  });
   subscriptionsMenuObserver.observe(document.body, {
     childList: true,
     subtree: true,
@@ -631,10 +675,12 @@ function applyShortsToggle(shouldBlur: boolean) {
     blurShortsMenu();
     if (isShortsPage()) blurShortsPage();
     blurShortsShelf();
+    blurMiniSidebarShorts();
   } else {
     unblurShortsMenu();
     if (isShortsPage()) unblurShortsPage();
     unblurShortsShelf();
+    unblurMiniSidebarShorts();
   }
 }
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
