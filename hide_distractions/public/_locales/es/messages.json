@@ -75,5 +75,10 @@
   "settings_locked_during_session": 
   {
   "message": "⚠️ No se pueden configurar los ajustes durante una sesión"
+  },
+  "blur_jobs": 
+  {
+  "message": "Difuminar sugerencias de empleo"
   }
+
 }

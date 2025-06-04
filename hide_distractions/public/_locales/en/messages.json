@@ -98,5 +98,11 @@
   {
   "message": "⚠️ Settings cannot be configured during an active session.",
   "description": "Alert shown when trying to open settings during a focus session"
+ },
+ "blur_jobs": 
+ {
+  "message": "Blur Job Suggestions",
+  "description": "Option to blur LinkedIn job suggestions"
  }
+
 }

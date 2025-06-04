@@ -338,11 +338,7 @@ const App = () => {
           <Toggle checked={linkedinBlurPYMK} onChange={handleLinkedinBlurToggle} />
         </label>
         <label className="option-label">
-          <span className="option-text">{t("blur_news")}</span>
-          <Toggle checked={linkedinBlurNews} onChange={handleLinkedinNewsToggle} />
-        </label>
-        <label className="option-label">
-          <span className="option-text">{t("blur_x")}</span>
+          <span className="option-text">{t("blur_jobs")}</span>
           <Toggle checked={linkedinBlurJobs} onChange={handleLinkedinJobsToggle} />
         </label>
       </div>
