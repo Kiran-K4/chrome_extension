@@ -21,13 +21,14 @@ const Toggle = ({
 );
 
 const App = () => {
-  const t = (key: string) => chrome.i18n.getMessage(key); // i18n helper
+  const t = (key: string) => chrome.i18n.getMessage(key);
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
   const [linkedinBlurPYMK, setLinkedinBlurPYMK] = useState(true);
   const [linkedinBlurNews, setLinkedinBlurNews] = useState(true);
+  const [linkedinBlurJobs, setLinkedinBlurJobs] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
@@ -45,7 +46,6 @@ const App = () => {
     });
   }, []);
 
-  // Load toggles
   useEffect(() => {
     chrome.storage.local.get(
       [
@@ -54,7 +54,8 @@ const App = () => {
         "homePageBlurEnabled",
         "shortsBlurEnabled",
         "linkedinBlurPYMK",
-        "linkedinBlurNews"
+        "linkedinBlurNews",
+        "linkedinBlurJobs"
       ],
       ({
         blurEnabled,
@@ -62,14 +63,16 @@ const App = () => {
         homePageBlurEnabled,
         shortsBlurEnabled,
         linkedinBlurPYMK,
-        linkedinBlurNews
+        linkedinBlurNews,
+        linkedinBlurJobs
       }) => {
         setBlurEnabled(blurEnabled ?? true);
         setHidden(commentsHidden ?? true);
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
         setShortsBlurEnabled(shortsBlurEnabled ?? true);
-        setLinkedinBlurPYMK(linkedinBlurPYMK ?? true);
         setLinkedinBlurNews(linkedinBlurNews ?? true);
+        setLinkedinBlurPYMK(linkedinBlurPYMK ?? true);
+        setLinkedinBlurJobs(linkedinBlurJobs ?? true);
       }
     );
   }, []);
@@ -94,14 +97,22 @@ const App = () => {
         setShortsBlurEnabled(shortsBlurEnabled);
       }
     );
-    chrome.storage.local.get({ linkedinBlurPYMK: true }, 
+    chrome.storage.local.get(
+      { linkedinBlurPYMK: true }, 
       ({ linkedinBlurPYMK }) => {
         setLinkedinBlurPYMK(linkedinBlurPYMK);
       }
     );
-    chrome.storage.local.get({ linkedinBlurNews: true }, 
+    chrome.storage.local.get(
+      { linkedinBlurNews: true }, 
       ({ linkedinBlurNews }) => {
         setLinkedinBlurNews(linkedinBlurNews);
+      }
+    );
+    chrome.storage.local.get(
+      { linkedinBlurJobs: true }, 
+      ({ linkedinBlurJobs }) => {
+        setLinkedinBlurJobs(linkedinBlurJobs ?? true);
       }
     );
   }, []);
@@ -134,9 +145,8 @@ const App = () => {
       });
     };
 
-    console.log("sessions", allFocusSessions);
-    updateSessions(); // first load
-    const interval = setInterval(updateSessions, 1000); // update every second
+    updateSessions();
+    const interval = setInterval(updateSessions, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -144,10 +154,7 @@ const App = () => {
     const newValue = !shortsBlurEnabled;
     setShortsBlurEnabled(newValue);
     chrome.storage.local.set({ shortsBlurEnabled: newValue });
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
         type: "TOGGLE_SHORTS_BLUR",
@@ -160,10 +167,7 @@ const App = () => {
     const newValue = !blurEnabled;
     setBlurEnabled(newValue);
     chrome.storage.local.set({ blurEnabled: newValue });
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
         type: "TOGGLE_BLUR",
@@ -173,10 +177,7 @@ const App = () => {
   };
 
   const handleCommentsToggle = async () => {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
     chrome.tabs.sendMessage(tab.id, { action: "toggleComments" }, (res) => {
       if (!chrome.runtime.lastError && res?.status) {
@@ -189,17 +190,14 @@ const App = () => {
     const newValue = !homeBlurEnabled;
     setHomeBlurEnabled(newValue);
     setBlurEnabled(newValue);
-    
-    chrome.storage.local.set({ 
+
+    chrome.storage.local.set({
       homePageBlurEnabled: newValue,
-      blurEnabled: newValue 
+      blurEnabled: newValue,
     });
-    
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
         type: "TOGGLE_HOME_PAGE_BLUR",
@@ -220,11 +218,21 @@ const App = () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.id) {
       await chrome.tabs.sendMessage(tab.id, {
-        type: 'TOGGLE_LINKEDIN_BLUR',
-        payload: newValue
+        type: "TOGGLE_LINKEDIN_BLUR",
+        payload: newValue,
       });
-      chrome.tabs.sendMessage(tab.id, {
-        type: "TOGGLE_BLUR",
+    }
+  };
+
+  const handleLinkedinJobsToggle = async () => {
+    const newValue = !linkedinBlurJobs;
+    setLinkedinBlurJobs(newValue);
+    await chrome.storage.local.set({ linkedinBlurJobs: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_LINKEDIN_JOBS_BLUR",
         payload: newValue,
       });
     }
@@ -286,7 +294,7 @@ const App = () => {
         onClick={() => {
           if (currentDomain && allFocusSessions[currentDomain]) {
             setSettingsBlockedMessage(true);
-            setTimeout(() => setSettingsBlockedMessage(false), 3000); // hide after 3 sec
+            setTimeout(() => setSettingsBlockedMessage(false), 3000);
           } else {
             setShowSettings(true);
           }
@@ -310,7 +318,7 @@ const App = () => {
           <span className="option-text">{t("blur_home")}</span>
           <Toggle checked={homeBlurEnabled} onChange={handleHomeBlurToggle} />
         </label>
-        <div style={{ display: 'none' }}>
+        <div style={{ display: "none" }}>
           <label className="option-label">
             <span className="option-text">{t("blur_distractions")}</span>
             <Toggle checked={blurEnabled} onChange={handleBlurToggle} />
@@ -332,6 +340,10 @@ const App = () => {
         <label className="option-label">
           <span className="option-text">{t("blur_news")}</span>
           <Toggle checked={linkedinBlurNews} onChange={handleLinkedinNewsToggle} />
+        </label>
+        <label className="option-label">
+          <span className="option-text">{t("blur_x")}</span>
+          <Toggle checked={linkedinBlurJobs} onChange={handleLinkedinJobsToggle} />
         </label>
       </div>
       <button className="close-button" onClick={() => setShowSettings(false)}>
