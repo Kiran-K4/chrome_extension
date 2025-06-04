@@ -31,6 +31,7 @@ function resetDefaults() {
     homePageBlurEnabled:    true,
     shortsBlurEnabled:      true,
     linkedinBlurPYMK:       true,
-    linkedinBlurNews:       true
+    linkedinBlurNews:       true,
+    linkedinBlurJobs:       true
   }, () => console.log("Defaults reset on install/startup"));
 }
