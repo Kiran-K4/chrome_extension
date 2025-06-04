@@ -1,4 +1,7 @@
 {
+  "home_title": {
+    "message": "Sesiones de enfoque"
+  },
   "settings_label": {
     "message": "Configuración"  
   },
@@ -13,6 +16,9 @@
   },
   "blur_shorts": {
     "message": "Difuminar Shorts"
+  },
+  "blur_PYMK": {
+    "message": "Recomendaciones de Blur Connection"
   },
   "intention_label": {
     "message": "Intención"
@@ -41,6 +47,9 @@
   },
   "button": {
     "message": "¡Vamos allá!"
+  },
+  "close_button": {
+    "message": "Cerca"
   },
   "time_default": {
     "message": "Tiempo..."

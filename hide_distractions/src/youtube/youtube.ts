@@ -1,0 +1,1 @@
+console.log("YouTube blur script injected at", location.href);

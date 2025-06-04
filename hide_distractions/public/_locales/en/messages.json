@@ -1,4 +1,8 @@
 {
+  "home_title": {
+    "message": "Focus Sessions",
+    "description": "Label for Focus Sessions section"
+  },
   "settings_label": {
     "message": "Settings",
     "description": "Label for the settings section of the extension"
@@ -18,6 +22,10 @@
   "blur_shorts": {
     "message": "Blur Shorts",
     "description": "Option to blur YouTube Shorts"
+  },
+    "blur_PYMK": {
+    "message": "Blur Connection Recommendations",
+    "description": "Option to blur (People you may know)"
   },
   "intention_label": {
     "message": "Intention",
@@ -53,6 +61,10 @@
   "button": {
     "message": "Let's dig in!",
     "description": "Label for submit button"
+  },
+  "close_button": {
+    "message": "Close",
+    "description": "Label for close button in Settings Page"
   },
   "time_default": {
     "message": "Time...",
