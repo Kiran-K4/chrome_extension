@@ -27,6 +27,7 @@ const App = () => {
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
   const [linkedinBlurPYMK, setLinkedinBlurPYMK] = useState(true);
+  const [linkedinBlurNews, setLinkedinBlurNews] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
@@ -52,20 +53,23 @@ const App = () => {
         "commentsHidden",
         "homePageBlurEnabled",
         "shortsBlurEnabled",
-        "linkedinBlurPYMK"
+        "linkedinBlurPYMK",
+        "linkedinBlurNews"
       ],
       ({
         blurEnabled,
         commentsHidden,
         homePageBlurEnabled,
         shortsBlurEnabled,
-        linkedinBlurPYMK
+        linkedinBlurPYMK,
+        linkedinBlurNews
       }) => {
         setBlurEnabled(blurEnabled ?? true);
         setHidden(commentsHidden ?? true);
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
         setShortsBlurEnabled(shortsBlurEnabled ?? true);
         setLinkedinBlurPYMK(linkedinBlurPYMK ?? true);
+        setLinkedinBlurNews(linkedinBlurNews ?? true);
       }
     );
   }, []);
@@ -93,6 +97,11 @@ const App = () => {
     chrome.storage.local.get({ linkedinBlurPYMK: true }, 
       ({ linkedinBlurPYMK }) => {
         setLinkedinBlurPYMK(linkedinBlurPYMK);
+      }
+    );
+    chrome.storage.local.get({ linkedinBlurNews: true }, 
+      ({ linkedinBlurNews }) => {
+        setLinkedinBlurNews(linkedinBlurNews);
       }
     );
   }, []);
@@ -221,6 +230,25 @@ const App = () => {
     }
   };
 
+  const handleLinkedinNewsToggle = async () => {
+    const newValue = !linkedinBlurNews;
+    setLinkedinBlurNews(newValue);
+    // save to chrome.storage.local
+    await chrome.storage.local.set({ linkedinBlurNews: newValue });
+
+    // now notify the content script in the active tab:
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_LINKEDIN_NEWS",
+        payload: newValue,
+      });
+      // also send the “TOGGLE_BLUR” message if you need the global blur flag:
+      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
+    }
+  };
+
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -300,6 +328,10 @@ const App = () => {
         <label className="option-label">
           <span className="option-text">{t("blur_PYMK")}</span>
           <Toggle checked={linkedinBlurPYMK} onChange={handleLinkedinBlurToggle} />
+        </label>
+        <label className="option-label">
+          <span className="option-text">Blur News</span>
+          <Toggle checked={linkedinBlurNews} onChange={handleLinkedinNewsToggle} />
         </label>
       </div>
       <button className="close-button" onClick={() => setShowSettings(false)}>
