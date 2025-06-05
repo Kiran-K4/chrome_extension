@@ -6,6 +6,7 @@ const togglePYMK = (on: boolean) => {
     if (/people you may know/i.test(sec.innerText) ||
       /People to follow based on your activity/i.test(sec.innerText) ||
       /People who are in/i.test(sec.innerText) ||
+      /People in the/i.test(sec.innerText) ||
       /More suggestions for you/i.test(sec.innerText)
     ) {
       sec.style.cssText = on
