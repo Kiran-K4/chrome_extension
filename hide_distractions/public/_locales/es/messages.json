@@ -20,6 +20,9 @@
   "blur_PYMK": {
     "message": "Recomendaciones de Blur Connection"
   },
+  "blur_news": {
+    "message": "noticias borrosas"
+  },
   "intention_label": {
     "message": "Intención"
   },

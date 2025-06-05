@@ -27,6 +27,10 @@
     "message": "Blur Connection Recommendations",
     "description": "Option to blur (People you may know)"
   },
+    "blur_news": {
+    "message": "Blur News",
+    "description": "Option to blur trending news"
+  },
   "intention_label": {
     "message": "Intention",
     "description": "Label for user intention input"

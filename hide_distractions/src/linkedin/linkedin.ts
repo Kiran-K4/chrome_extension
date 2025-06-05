@@ -34,30 +34,26 @@ const toggleNews = (on: boolean) => {
 
 // Stored setting on load
 chrome.storage.local.get(
-  { linkedinBlurPYMK: true },
-  ({ linkedinBlurPYMK }) => togglePYMK(linkedinBlurPYMK)
+  { linkedinBlurPYMK: true, linkedinBlurNews: true },
+  ({ linkedinBlurPYMK, linkedinBlurNews }) => {
+    togglePYMK(linkedinBlurPYMK);
+    toggleNews(linkedinBlurNews);
+  }
 );
-
-chrome.storage.local.get(  
-  { linkedinBlurNews: true },        
-  ({ linkedinBlurNews }) => toggleNews(linkedinBlurNews)
-);
-
-
 
 // Re-apply if LinkedIn lazy-injects more sections
-new MutationObserver(muts => {
-  if (muts.some(m => m.addedNodes.length)) {
+new MutationObserver((mutations) => {
+  if (mutations.some((m) => m.addedNodes.length)) {
     chrome.storage.local.get(
-      { linkedinBlurPYMK: true },
-      ({ linkedinBlurPYMK }) => togglePYMK(linkedinBlurPYMK)
-    );
-    chrome.storage.local.get(
-     { linkedinBlurNews: true },
-     ({ linkedinBlurNews }) => toggleNews(linkedinBlurNews)
+      { linkedinBlurPYMK: true, linkedinBlurNews: true },
+      ({ linkedinBlurPYMK, linkedinBlurNews }) => {
+        togglePYMK(linkedinBlurPYMK);
+        toggleNews(linkedinBlurNews);
+      }
     );
   }
 }).observe(document.body, { childList: true, subtree: true });
+
 
 // Listen for popup’s toggle
 chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
