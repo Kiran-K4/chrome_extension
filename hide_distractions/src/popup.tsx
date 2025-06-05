@@ -21,7 +21,7 @@ const Toggle = ({
 );
 
 const App = () => {
-  const t = (key: string) => chrome.i18n.getMessage(key);
+  const t = (key: string) => chrome.i18n.getMessage(key); // i18n helper
   const [blurEnabled, setBlurEnabled] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
@@ -46,6 +46,7 @@ const App = () => {
     });
   }, []);
 
+  // Load toggles
   useEffect(() => {
     chrome.storage.local.get(
       [
@@ -107,12 +108,14 @@ const App = () => {
       { linkedinBlurNews: true }, 
       ({ linkedinBlurNews }) => {
         setLinkedinBlurNews(linkedinBlurNews);
+
       }
     );
     chrome.storage.local.get(
       { linkedinBlurJobs: true }, 
       ({ linkedinBlurJobs }) => {
-        setLinkedinBlurJobs(linkedinBlurJobs ?? true);
+        setLinkedinBlurJobs(linkedinBlurJobs);
+
       }
     );
   }, []);
@@ -145,8 +148,9 @@ const App = () => {
       });
     };
 
-    updateSessions();
-    const interval = setInterval(updateSessions, 1000);
+    console.log("sessions", allFocusSessions);
+    updateSessions(); // first load
+    const interval = setInterval(updateSessions, 1000); // update every second
     return () => clearInterval(interval);
   }, []);
 
@@ -160,6 +164,7 @@ const App = () => {
         type: "TOGGLE_SHORTS_BLUR",
         payload: newValue,
       });
+      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
 
@@ -173,6 +178,7 @@ const App = () => {
         type: "TOGGLE_BLUR",
         payload: newValue,
       });
+      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
 
@@ -190,14 +196,9 @@ const App = () => {
     const newValue = !homeBlurEnabled;
     setHomeBlurEnabled(newValue);
     setBlurEnabled(newValue);
-
-    chrome.storage.local.set({
-      homePageBlurEnabled: newValue,
-      blurEnabled: newValue,
-    });
+    chrome.storage.local.set({ homePageBlurEnabled: newValue, blurEnabled: newValue });
 
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, {
         type: "TOGGLE_HOME_PAGE_BLUR",
@@ -221,6 +222,22 @@ const App = () => {
         type: "TOGGLE_LINKEDIN_BLUR",
         payload: newValue,
       });
+      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
+    }
+  };
+
+  const handleLinkedinNewsToggle = async () => {
+    const newValue = !linkedinBlurNews;
+    setLinkedinBlurNews(newValue);
+    await chrome.storage.local.set({ linkedinBlurNews: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_LINKEDIN_NEWS",
+        payload: newValue,
+      });
+      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
 
@@ -235,27 +252,9 @@ const App = () => {
         type: "TOGGLE_LINKEDIN_JOBS_BLUR",
         payload: newValue,
       });
-    }
-  };
-
-  const handleLinkedinNewsToggle = async () => {
-    const newValue = !linkedinBlurNews;
-    setLinkedinBlurNews(newValue);
-    // save to chrome.storage.local
-    await chrome.storage.local.set({ linkedinBlurNews: newValue });
-
-    // now notify the content script in the active tab:
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      await chrome.tabs.sendMessage(tab.id, {
-        type: "TOGGLE_LINKEDIN_NEWS",
-        payload: newValue,
-      });
-      // also send the “TOGGLE_BLUR” message if you need the global blur flag:
       chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
-
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
@@ -294,7 +293,7 @@ const App = () => {
         onClick={() => {
           if (currentDomain && allFocusSessions[currentDomain]) {
             setSettingsBlockedMessage(true);
-            setTimeout(() => setSettingsBlockedMessage(false), 3000);
+            setTimeout(() => setSettingsBlockedMessage(false), 3000); // hide after 3 sec
           } else {
             setShowSettings(true);
           }
@@ -311,7 +310,7 @@ const App = () => {
   const settingsView = (
     <div>
       <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h2 className="settings-title">{t("settings_label")}</h2>
+      <h2 className="settings-title">{t("settings_title")}</h2>
       <div className="options-container">
         <h3 className="settings-label">YouTube</h3>
         <label className="option-label">
@@ -336,6 +335,10 @@ const App = () => {
         <label className="option-label">
           <span className="option-text">{t("blur_PYMK")}</span>
           <Toggle checked={linkedinBlurPYMK} onChange={handleLinkedinBlurToggle} />
+        </label>
+        <label className="option-label">
+          <span className="option-text">{t("blur_news")}</span>
+          <Toggle checked={linkedinBlurNews} onChange={handleLinkedinNewsToggle} />
         </label>
         <label className="option-label">
           <span className="option-text">{t("blur_jobs")}</span>

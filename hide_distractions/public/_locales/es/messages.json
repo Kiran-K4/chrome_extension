@@ -2,7 +2,7 @@
   "home_title": {
     "message": "Sesiones de enfoque"
   },
-  "settings_label": {
+  "settings_title": {
     "message": "Configuración"  
   },
   "blur_home": {
@@ -23,6 +23,9 @@
   "blur_news": {
     "message": "Noticias borrosas"
   },
+  "blur_jobs": {
+    "message": "Difuminar sugerencias de empleo"
+  },
   "intention_label": {
     "message": "Intención"
   },
@@ -32,7 +35,6 @@
   "no_focus_session": {
     "message": "No hay una sesión de enfoque activa."
   },
-
   "heading": {
     "message": "¡Hola! ¿Ya estás tramando travesuras?"
   },
@@ -75,10 +77,5 @@
   "settings_locked_during_session": 
   {
   "message": "⚠️ No se pueden configurar los ajustes durante una sesión"
-  },
-  "blur_jobs": 
-  {
-  "message": "Difuminar sugerencias de empleo"
   }
-
 }

@@ -3,7 +3,7 @@
     "message": "Focus Sessions",
     "description": "Label for Focus Sessions section"
   },
-  "settings_label": {
+  "settings_title": {
     "message": "Settings",
     "description": "Label for the settings section of the extension"
   },
@@ -27,9 +27,13 @@
     "message": "Blur Connection Recommendations",
     "description": "Option to blur (People you may know)"
   },
-    "blur_news": {
+  "blur_news": {
     "message": "Blur News",
     "description": "Option to blur trending news"
+  },
+   "blur_jobs": {
+    "message": "Blur Job Suggestions",
+    "description": "Option to blur LinkedIn job suggestions"
   },
   "intention_label": {
     "message": "Intention",
@@ -98,11 +102,5 @@
   {
   "message": "⚠️ Settings cannot be configured during an active session.",
   "description": "Alert shown when trying to open settings during a focus session"
- },
- "blur_jobs": 
- {
-  "message": "Blur Job Suggestions",
-  "description": "Option to blur LinkedIn job suggestions"
  }
-
 }
