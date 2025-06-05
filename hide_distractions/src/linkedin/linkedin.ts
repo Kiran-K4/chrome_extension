@@ -15,26 +15,54 @@ const togglePYMK = (on: boolean) => {
   });
 };
 
+// Blur/Un-blur “LinkedIn News” sections (Trending News)
+const toggleNews = (on: boolean) => {
+  // “LinkedIn News” widget typically appears as a <section> containing that heading
+  document.querySelectorAll<HTMLElement>("section").forEach(sec => {
+    // Look for “LinkedIn News” or “Top stories” in the section’s innerText
+    if (
+      /LinkedIn News/i.test(sec.innerText) ||
+      /Top stories/i.test(sec.innerText)
+    ) {
+      sec.style.cssText = on
+        ? "filter:blur(8px)!important;pointer-events:none!important;user-select:none!important;"
+        : "";
+    }
+  });
+};
+
+
 // Stored setting on load
 chrome.storage.local.get(
-  { linkedinBlurPYMK: true },
-  ({ linkedinBlurPYMK }) => togglePYMK(linkedinBlurPYMK)
+  { linkedinBlurPYMK: true, linkedinBlurNews: true },
+  ({ linkedinBlurPYMK, linkedinBlurNews }) => {
+    togglePYMK(linkedinBlurPYMK);
+    toggleNews(linkedinBlurNews);
+  }
 );
 
 // Re-apply if LinkedIn lazy-injects more sections
-new MutationObserver(muts => {
-  if (muts.some(m => m.addedNodes.length)) {
+new MutationObserver((mutations) => {
+  if (mutations.some((m) => m.addedNodes.length)) {
     chrome.storage.local.get(
-      { linkedinBlurPYMK: true },
-      ({ linkedinBlurPYMK }) => togglePYMK(linkedinBlurPYMK)
+      { linkedinBlurPYMK: true, linkedinBlurNews: true },
+      ({ linkedinBlurPYMK, linkedinBlurNews }) => {
+        togglePYMK(linkedinBlurPYMK);
+        toggleNews(linkedinBlurNews);
+      }
     );
   }
 }).observe(document.body, { childList: true, subtree: true });
+
 
 // Listen for popup’s toggle
 chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
   if (msg.type === "TOGGLE_LINKEDIN_BLUR") {
     togglePYMK(!!msg.payload);
+    sendResponse({ ok: true });
+  }
+  else if (msg.type === "TOGGLE_LINKEDIN_NEWS") {
+    toggleNews(!!msg.payload);
     sendResponse({ ok: true });
   }
 });
