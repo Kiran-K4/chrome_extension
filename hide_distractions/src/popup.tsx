@@ -71,8 +71,8 @@ const App = () => {
         setHidden(commentsHidden ?? true);
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
         setShortsBlurEnabled(shortsBlurEnabled ?? true);
-        setLinkedinBlurNews(linkedinBlurNews ?? true);
         setLinkedinBlurPYMK(linkedinBlurPYMK ?? true);
+        setLinkedinBlurNews(linkedinBlurNews ?? true);
         setLinkedinBlurJobs(linkedinBlurJobs ?? true);
       }
     );
@@ -108,14 +108,12 @@ const App = () => {
       { linkedinBlurNews: true }, 
       ({ linkedinBlurNews }) => {
         setLinkedinBlurNews(linkedinBlurNews);
-
       }
     );
     chrome.storage.local.get(
       { linkedinBlurJobs: true }, 
       ({ linkedinBlurJobs }) => {
         setLinkedinBlurJobs(linkedinBlurJobs);
-
       }
     );
   }, []);
@@ -222,7 +220,6 @@ const App = () => {
         type: "TOGGLE_LINKEDIN_BLUR",
         payload: newValue,
       });
-      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
 
@@ -237,7 +234,6 @@ const App = () => {
         type: "TOGGLE_LINKEDIN_NEWS",
         payload: newValue,
       });
-      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
 
@@ -252,7 +248,6 @@ const App = () => {
         type: "TOGGLE_LINKEDIN_JOBS_BLUR",
         payload: newValue,
       });
-      chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
 
