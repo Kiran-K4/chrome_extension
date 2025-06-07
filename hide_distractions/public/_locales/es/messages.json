@@ -2,7 +2,7 @@
   "home_title": {
     "message": "Sesiones de enfoque"
   },
-  "settings_label": {
+  "settings_title": {
     "message": "Configuración"  
   },
   "blur_home": {
@@ -21,7 +21,10 @@
     "message": "Recomendaciones de Blur Connection"
   },
   "blur_news": {
-    "message": "noticias borrosas"
+    "message": "Noticias borrosas"
+  },
+  "blur_jobs": {
+    "message": "Difuminar sugerencias de empleo"
   },
   "intention_label": {
     "message": "Intención"
@@ -32,7 +35,6 @@
   "no_focus_session": {
     "message": "No hay una sesión de enfoque activa."
   },
-
   "heading": {
     "message": "¡Hola! ¿Ya estás tramando travesuras?"
   },
