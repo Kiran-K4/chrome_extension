@@ -31,6 +31,7 @@ const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
+  const [linkedinHomeSection, setLinkedinHomeSection] = useState(true);
 
   const [allFocusSessions, setAllFocusSessions] = useState<
     Record<string, { intention: string; timeLeft: number }>
@@ -243,11 +244,24 @@ const App = () => {
         type: "TOGGLE_LINKEDIN_NEWS",
         payload: newValue,
       });
-      // also send the “TOGGLE_BLUR” message if you need the global blur flag:
+      // also send the "TOGGLE_BLUR" message if you need the global blur flag:
       chrome.tabs.sendMessage(tab.id, { type: "TOGGLE_BLUR", payload: newValue });
     }
   };
 
+  const handleLinkedinHomeSectionToggle = async () => {
+    const newValue = !linkedinHomeSection;
+    setLinkedinHomeSection(newValue);
+    await chrome.storage.local.set({ linkedinHomeSection: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_LINKEDIN_HOME_SECTION",
+        payload: newValue,
+      });
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
@@ -332,6 +346,10 @@ const App = () => {
         <label className="option-label">
           <span className="option-text">{t("blur_news")}</span>
           <Toggle checked={linkedinBlurNews} onChange={handleLinkedinNewsToggle} />
+        </label>
+        <label className="option-label">
+          <span className="option-text">Home Section</span>
+          <Toggle checked={linkedinHomeSection} onChange={handleLinkedinHomeSectionToggle} />
         </label>
       </div>
       <button className="close-button" onClick={() => setShowSettings(false)}>
