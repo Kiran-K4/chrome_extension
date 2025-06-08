@@ -34,12 +34,11 @@ const toggleNews = (on: boolean) => {
 
 // Blur/Un-blur LinkedIn Home Section
 const toggleHomeSection = (on: boolean) => {
-  const feedContainer = document.querySelector<HTMLElement>(".scaffold-finite-scroll__content");
-  if (feedContainer) {
-    feedContainer.style.cssText = on
+  document.querySelectorAll<HTMLElement>(".scaffold-finite-scroll__content .feed-shared-update-v2").forEach(post => {
+    post.style.cssText = on
       ? "filter:blur(8px)!important;pointer-events:none!important;user-select:none!important;"
       : "";
-  }
+  });
 };
 
 // Stored setting on load
