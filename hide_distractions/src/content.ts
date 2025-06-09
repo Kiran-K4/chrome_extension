@@ -1,7 +1,39 @@
-console.log("Content script injected");
-
+console.log("Content script injected at", location.href);
 
 const domain = window.location.hostname.replace(/^www\./, "");
+
+const translations = {
+  heading: chrome.i18n.getMessage("heading"),
+  prompt: chrome.i18n.getMessage("prompt"),
+  placeholder: chrome.i18n.getMessage("placeholder"),
+  warning: chrome.i18n.getMessage("warning"),
+  duration: chrome.i18n.getMessage("duration"),
+  button: chrome.i18n.getMessage("button"),
+  time_default: chrome.i18n.getMessage("time_default"),
+  minute_1: chrome.i18n.getMessage("minute_1"),
+  minute_5: chrome.i18n.getMessage("minute_5"),
+  minute_10: chrome.i18n.getMessage("minute_10"),
+  minute_15: chrome.i18n.getMessage("minute_15"),
+  minute_30: chrome.i18n.getMessage("minute_30"),
+};
+
+// Send translations initially
+window.postMessage({
+  type: "FOCUSBEAR_TRANSLATIONS",
+  payload: translations
+}, "*");
+console.log("[FocusBear] Translation message sent");
+
+// Respond if popup requests translations again
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "REQUEST_TRANSLATIONS") {
+    console.log("[FocusBear] Popup requested translations, resending...");
+    window.postMessage({
+      type: "FOCUSBEAR_TRANSLATIONS",
+      payload: translations
+    }, "*");
+  }
+});
 
 // Inject popup on first visit if no domain session exists
 chrome.storage.local.get(["focusData"], ({ focusData }) => {
