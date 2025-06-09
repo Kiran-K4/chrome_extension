@@ -29,6 +29,7 @@ const App = () => {
   const [linkedinBlurPYMK, setLinkedinBlurPYMK] = useState(true);
   const [linkedinBlurNews, setLinkedinBlurNews] = useState(true);
   const [linkedinBlurJobs, setLinkedinBlurJobs] = useState(true);
+  const [linkedinBlurHome, setLinkedinBlurHome] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
@@ -251,6 +252,20 @@ const App = () => {
     }
   };
 
+  const handleLinkedinHomeToggle = async () => {
+    const newValue = !linkedinBlurHome;
+    setLinkedinBlurHome(newValue);
+    await chrome.storage.local.set({ linkedinBlurHome: newValue });
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: "TOGGLE_LINKEDIN_HOME",
+        payload: newValue,
+      });
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -338,6 +353,10 @@ const App = () => {
         <label className="option-label">
           <span className="option-text">{t("blur_jobs")}</span>
           <Toggle checked={linkedinBlurJobs} onChange={handleLinkedinJobsToggle} />
+        </label>
+        <label className="option-label">
+          <span className="option-text">{t("blur_home")}</span>
+          <Toggle checked={linkedinBlurHome} onChange={handleLinkedinHomeToggle} />
         </label>
       </div>
       <button className="close-button" onClick={() => setShowSettings(false)}>

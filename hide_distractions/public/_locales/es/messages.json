@@ -77,5 +77,8 @@
   "settings_locked_during_session": 
   {
   "message": "⚠️ No se pueden configurar los ajustes durante una sesión"
+  },
+  "blur_linkedin_home": {
+    "message": "Difuminar página principal de LinkedIn"
   }
 }

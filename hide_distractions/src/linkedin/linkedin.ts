@@ -20,9 +20,9 @@
 
   // Blur LinkedIn News toggle function
   const toggleNews = (on: boolean) => {
-    // “LinkedIn News” widget typically appears as a <section> containing that heading
+    // "LinkedIn News" widget typically appears as a <section> containing that heading
     document.querySelectorAll<HTMLElement>("section").forEach(sec => {
-      // Look for “LinkedIn News” or “Top stories” in the section’s innerText
+      // Look for "LinkedIn News" or "Top stories" in the section's innerText
       if (
         /LinkedIn News/i.test(sec.innerText) ||
         /Top stories/i.test(sec.innerText)
@@ -71,6 +71,18 @@
     });
   };
 
+  const toggleHomeFeed = (on: boolean) => {
+    console.log("toggleHomeFeed called with:", on);
+    
+    // Target the main feed column
+    const mainFeed = document.querySelector<HTMLElement>("main.wqToGUxmGbmRNZMOIEYgdbpDgThBEqKYMjIJc");
+    if (mainFeed) {
+      mainFeed.style.cssText = on ? BlurSection : "";
+    } else {
+      console.log("Main feed not found.");
+    }
+  };
+
   // Stored setting on load
   chrome.storage.local.get(
     { linkedinBlurPYMK: true, linkedinBlurNews: true, linkedinBlurJobs: true },
@@ -96,7 +108,7 @@
   }).observe(document.body, { childList: true, subtree: true });
 
 
-  // Listen for popup’s toggle
+  // Listen for popup's toggle
   chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
     if (msg.type === "TOGGLE_LINKEDIN_BLUR") {
       togglePYMK(!!msg.payload);
@@ -108,6 +120,11 @@
     }
     if (msg.type === "TOGGLE_LINKEDIN_JOBS_BLUR") {
       toggleJobPageSections(!!msg.payload);
+      sendResponse({ ok: true });
+    }
+    if (msg.type === "TOGGLE_LINKEDIN_HOME") {
+      console.log("Received TOGGLE_LINKEDIN_HOME message:", msg.payload);
+      toggleHomeFeed(!!msg.payload);
       sendResponse({ ok: true });
     }
   });
