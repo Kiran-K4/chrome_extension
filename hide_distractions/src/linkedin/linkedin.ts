@@ -69,16 +69,11 @@
     });
   };
 
+  // Blur home feed
   const toggleHomeFeed = (on: boolean) => {
-    console.log("toggleHomeFeed called with:", on);
-    
-    // Target the main feed column
-    const mainFeed = document.querySelector<HTMLElement>("main.wqToGUxmGbmRNZMOIEYgdbpDgThBEqKYMjIJc");
-    if (mainFeed) {
-      mainFeed.style.cssText = on ? BlurSection : "";
-    } else {
-      console.log("Main feed not found.");
-    }
+    document.querySelectorAll<HTMLElement>(".scaffold-finite-scroll__content .feed-shared-update-v2").forEach(sec => {
+      sec.style.cssText = on ? BlurSection : "";
+    });
   };
 
   // Stored setting on load
