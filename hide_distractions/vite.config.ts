@@ -29,7 +29,6 @@ export default defineConfig({
         background: resolve(__dirname, 'src/background.ts'),
         content: resolve(__dirname, 'src/content.ts'),
         youtube: resolve(__dirname, 'src/youtube/youtube.ts'),
-        homePageBlur: resolve(__dirname, 'src/youtube/homePageBlur.ts'),
         linkedin: resolve(__dirname, 'src/linkedin/linkedin.ts')
       },
       output: {

@@ -25,7 +25,7 @@
     },
     {
       "matches": ["*://*.youtube.com/*"],
-      "js": ["youtube.js", "homePageBlur.js"]
+      "js": ["youtube.js"]
     },
     {
       "matches": ["*://*.linkedin.com/*"],
