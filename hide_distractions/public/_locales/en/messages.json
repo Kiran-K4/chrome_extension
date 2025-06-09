@@ -102,5 +102,9 @@
   {
   "message": "⚠️ Settings cannot be configured during an active session.",
   "description": "Alert shown when trying to open settings during a focus session"
+ },
+ "blur_linkedin_home": {
+  "message": "Blur LinkedIn Home",
+  "description": "Option to blur the LinkedIn home page"
  }
 }

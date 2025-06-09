@@ -60,6 +60,7 @@ img.settings-icon {
 /* Setting group names */
 .settings-label {
   font-size: 1.25rem;
+  margin: 6px;
 }
 
 /* Options list */

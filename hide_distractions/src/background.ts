@@ -4,7 +4,7 @@ chrome.runtime.onInstalled.addListener((details) => {
   resetDefaults();
 });
 
-// Fires whenever the service worker comes alive, including when you hit “Reload” in chrome://extensions.
+// Fires whenever the service worker comes alive, including when you hit "Reload" in chrome://extensions.
 chrome.runtime.onStartup.addListener(() => {
   console.log("onStartup");
   resetDefaults();
@@ -23,7 +23,7 @@ function resetDefaults() {
     console.log("Cleared focus session data");
   });
   
-  // The “first-run” gate
+  // The "first-run" gate
   chrome.storage.local.set({
     showIntentionPopup:     true,
     blurEnabled:            true,
@@ -32,6 +32,7 @@ function resetDefaults() {
     shortsBlurEnabled:      true,
     linkedinBlurPYMK:       true,
     linkedinBlurNews:       true,
-    linkedinBlurJobs:       true
+    linkedinBlurJobs:       true,
+    linkedinBlurHome:       true
   }, () => console.log("Defaults reset on install/startup"));
 }
