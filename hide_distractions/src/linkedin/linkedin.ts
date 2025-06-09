@@ -29,14 +29,12 @@
       ) {
         sec.style.cssText = on ? BlurSection : "";
       }
-       // ALSO BLUR the Notifications feed when on /notifications URL
+
+      // Also Look for Notifications feed
       if (
         location.pathname.startsWith("/notifications")
       ) {
-      // LinkedIn wraps notification items in a "scaffold-finite-scroll__content" container
-      document
-     .querySelectorAll<HTMLElement>("div.scaffold-finite-scroll__content")
-     .forEach(el => {
+      document.querySelectorAll<HTMLElement>("div.scaffold-finite-scroll__content").forEach(el => {
         el.style.cssText = on ? BlurSection : "";
       });
     }
@@ -85,11 +83,12 @@
 
   // Stored setting on load
   chrome.storage.local.get(
-    { linkedinBlurPYMK: true, linkedinBlurNews: true, linkedinBlurJobs: true },
-    ({ linkedinBlurPYMK, linkedinBlurNews, linkedinBlurJobs }) => {
+    { linkedinBlurPYMK: true, linkedinBlurNews: true, linkedinBlurJobs: true, linkedinBlurHome: true },
+    ({ linkedinBlurPYMK, linkedinBlurNews, linkedinBlurJobs, linkedinBlurHome }) => {
       togglePYMK(linkedinBlurPYMK);
       toggleNews(linkedinBlurNews);
       toggleJobPageSections(linkedinBlurJobs);
+      toggleHomeFeed(linkedinBlurHome);
     }
   );
 
@@ -97,11 +96,12 @@
   new MutationObserver(muts => {
     if (muts.some(m => m.addedNodes.length)) {
       chrome.storage.local.get(
-        { linkedinBlurPYMK: true, linkedinBlurNews: true, linkedinBlurJobs: true },
-        ({ linkedinBlurPYMK, linkedinBlurNews, linkedinBlurJobs }) => {
+        { linkedinBlurPYMK: true, linkedinBlurNews: true, linkedinBlurJobs: true, linkedinBlurHome: true },
+        ({ linkedinBlurPYMK, linkedinBlurNews, linkedinBlurJobs, linkedinBlurHome }) => {
           togglePYMK(linkedinBlurPYMK);
           toggleNews(linkedinBlurNews);
           toggleJobPageSections(linkedinBlurJobs);
+          toggleHomeFeed(linkedinBlurHome);
         }
       );
     }

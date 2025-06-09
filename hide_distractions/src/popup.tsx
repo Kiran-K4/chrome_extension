@@ -57,7 +57,8 @@ const App = () => {
         "shortsBlurEnabled",
         "linkedinBlurPYMK",
         "linkedinBlurNews",
-        "linkedinBlurJobs"
+        "linkedinBlurJobs",
+        "linkedinBlurHome"
       ],
       ({
         blurEnabled,
@@ -66,7 +67,8 @@ const App = () => {
         shortsBlurEnabled,
         linkedinBlurPYMK,
         linkedinBlurNews,
-        linkedinBlurJobs
+        linkedinBlurJobs,
+        linkedinBlurHome
       }) => {
         setBlurEnabled(blurEnabled ?? true);
         setHidden(commentsHidden ?? true);
@@ -75,6 +77,7 @@ const App = () => {
         setLinkedinBlurPYMK(linkedinBlurPYMK ?? true);
         setLinkedinBlurNews(linkedinBlurNews ?? true);
         setLinkedinBlurJobs(linkedinBlurJobs ?? true);
+        setLinkedinBlurHome(linkedinBlurHome ?? true);
       }
     );
   }, []);
@@ -115,6 +118,12 @@ const App = () => {
       { linkedinBlurJobs: true }, 
       ({ linkedinBlurJobs }) => {
         setLinkedinBlurJobs(linkedinBlurJobs);
+      }
+    );
+    chrome.storage.local.get(
+      { linkedinBlurHome: true }, 
+      ({ linkedinBlurHome }) => {
+        setLinkedinBlurHome(linkedinBlurHome);
       }
     );
   }, []);
