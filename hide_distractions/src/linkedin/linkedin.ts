@@ -29,6 +29,17 @@
       ) {
         sec.style.cssText = on ? BlurSection : "";
       }
+       // ALSO BLUR the Notifications feed when on /notifications URL
+      if (
+        location.pathname.startsWith("/notifications")
+      ) {
+      // LinkedIn wraps notification items in a "scaffold-finite-scroll__content" container
+      document
+     .querySelectorAll<HTMLElement>("div.scaffold-finite-scroll__content")
+     .forEach(el => {
+        el.style.cssText = on ? BlurSection : "";
+      });
+    }
     });
   };
 
