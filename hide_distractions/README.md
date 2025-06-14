@@ -2,19 +2,63 @@
 
 **Focus Bear** is a Chrome extension designed to help users minimise distractions and stay focused by blocking access and areas of chosen websites.
 
+## GitHub URL
+
+<https://github.com/Focus-Bear/chrome_extension>
+
+## Deloyment URL
+
+- N/A
+
 ## Technologies
 
 - **React/JavaScript**
+- **HTML/CSS**
 - **TypeScript**
 - **Vite**
-- **HTML/CSS**
 
-## Features
+## Changelog
 
-- Clean React-based UI using TSX components
-- Lightweight and fast with Vite build
-- Website blocker to help maintain focus
-- Popup interface asking the users intention
+### Unreleased
+
+- N/A
+
+### Version 1.0.0 • 15 June 2025
+
+#### 🚀 New Features
+
+- A floating popup, to capture users intention and time allocation on YouTube and LinkedIn
+- A popup to view active focus sessions and a settings page to toggle blur features
+- Spanish language support that mirrors Chrome's language settings
+
+- Toggle to blur YouTube homepage recommendations and chips bar
+- Toggle to blur YouTube shorts
+- Toggle to blur YouTube comments
+
+- Toggle to blur LinkedIn homepage feed
+- Toggle to blur LinkedIn notifications and trending news
+- Toggle to blur LinkedIn job recommendations  
+- Toggle to blur LinkedIn connection recommendations
+
+#### 🛠 Improvements
+
+- Styling follows Focus Bear branding and colour scheme
+- Settings are global and saved across different tabs
+- Settings are saved on page reload
+- If there is an active focus session, settings page cannot be accessed
+- If a focus session is expected to be 10+ mins, 15+ characters of reasoning is required, other than 5 chracters
+- Active session cards in popup are scrollable
+
+#### 🐞 Bug Fixes
+
+- Shorts section on YouTube homepage not blurred despite toggle being enabled in FocusBear extension
+- Subscription section on YouTube homepage not blurred despite toggle being enabled in FocusBear extension
+- Home Page blur not working after navigating from Shorts or Subscriptions page and refreshing
+
+#### ❗ Known Issues
+
+- LinkedIn toggles also affects YouTube subscription blurring
+- Intention popup css being injected improperly on all LinkedIn pages
 
 ## Getting Started
 
@@ -57,14 +101,19 @@ If you’re running into issues like missing build files or unexpected behaviour
 hide_distractions/
 │
 ├── public/                # Static files
+│   ├── _locales/          # Contains languages
 │   ├── icons/             # Extension icons
 │   └── manifest.json      # Chrome Extension manifest
 │
 ├── src/                   # Source files
-│   ├── popup.html         # HTML for popup interface
-│   ├── popup.tsx          # React popup UI
+│   ├── context/           # Contains global functions
+│   ├── styles/            # Contains css files
+│   ├── youtube/           # YouTube files
+│   ├── linkedin/          # LinkedIn files
 │   ├── background.ts      # Background script (Runs continuously in the background)
-│   ├── content.ts         # Content script (Injected into websites)
+│   ├── content.ts         # Global content script (Injected into websites)
+│   ├── popup.html         # HTML for popup interface
+│   └── popup.tsx          # React popup UI
 │
 ├── package.json           # Project metadata and scripts
 ├── package-lock.json      # Dependency lockfile
@@ -75,4 +124,4 @@ hide_distractions/
 
 ## License
 
-This project is licensed under ???
+- N/A
